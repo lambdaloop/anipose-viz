@@ -3,6 +3,8 @@ from flask import Flask
 from flask import url_for, render_template
 from flask import jsonify
 from flask import request, safe_join, send_from_directory
+from flask_compress import Compress
+# from flask_squeeze import Squeeze
 
 from glob import glob
 import os
@@ -15,7 +17,13 @@ import numpy as np
 from aniposelib.cameras import CameraGroup
 import toml
 
-prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
+## folders that are needed within each session
+## angles, pose-2d-filtered, pose-3d, videos-raw-slow
+## Calibration (with calibration.toml)
+## config.toml
+
+# prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
+prefix = '/media/turritopsis/pierre/gdrive/viz'
 
 cam_regex = "Cam-? ?([A-Z])"
 
@@ -33,6 +41,13 @@ for folder in dirs:
     if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
         sessions.append(folder)
 
+# creates a Flask application, named app
+app = Flask(__name__)
+# app.config['COMPRESS_LEVEL'] = 8
+# app.config['COMPRESS_ALGORITHM'] = 'br'
+Compress(app)
+# squeeze = Squeeze()
+# squeeze.init_app(app)
 
 def true_basename(fname):
     basename = os.path.basename(fname)
@@ -143,10 +158,8 @@ def load_2d_projections(session_path, fname):
         points_2d_proj[:, i, :, 0] -= dx
         points_2d_proj[:, i, :, 1] -= dy
     
-    return points_2d_proj
+    return np.int32(np.round(points_2d_proj))
 
-# creates a Flask application, named app
-app = Flask(__name__)
 
 # a route where we will display a welcome message via an HTML template
 @app.route('/')
@@ -234,6 +247,7 @@ def get_trials(session):
         "session": session,
         "folders": out
     })
+
 
 # run the application
 if __name__ == "__main__":
