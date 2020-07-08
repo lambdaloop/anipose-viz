@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
+        <title>Babylon - Getting Started</title>
+        <!--- Link to the last version of BabylonJS --->
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.slim.js"
+            integrity="sha256-DrT5NfxfbHvMHux31Lkhxg42LY6of8TaYyK50jnxRnM="
+            crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+
+        <link href="/static/style.css" rel="stylesheet" />
+    </head>
+    <body>
+        <div id="header">
+            <div class="selectVideoContainer">
+            <select id="selectSession" name="session"></select>
+            <select id="selectVideo" name="video"></select>
+            </div>
+        </div>
+
+        <div id="vidlist">
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+            <div class="container">
+                <video class="vid" preload="auto" loop="true">
+                </video>
+                <canvas class="canvas"></canvas>
+            </div>
+        </div>
+        <canvas id="renderCanvas"></canvas>
+        <script src="/static/script.js"></script>
+        <div id="fps">0</div>
+        <div id="buttons">
+            <!-- <button id="updateKeypoints" onclick="toggleKeypoints();">click on this</button> -->
+            <button id="play" onclick="play();">play</button>
+            <button id="pause" onclick="pause();">pause</button>
+        </div>
+    </body>
+</html>
