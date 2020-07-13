@@ -66,7 +66,6 @@ window.addEventListener('DOMContentLoaded', function(){
     var engine = new BABYLON.Engine(canvas, true);
 
 
-    
     // createScene function that creates and return the scene
     var createScene = function() {
 
@@ -206,14 +205,22 @@ window.addEventListener('DOMContentLoaded', function(){
     //     vidname: "05162019_fly2_0 R1C1  str-cw-0 sec"
     // }
 
-    var trial = state.trial;
-
-    // updateTrial(trial);
-
+    // decode the url
+    var h = decodeURIComponent(window.location.hash.substring(1));
+    var L = h.split("/");
+    var state_url = {};
+    if(L.length == 3) {
+        state_url.session = L[0];
+        state_url.folder = L[1];
+        state_url.trial = L[2];
+    }
+    console.log(state_url);
 
     fetch('/get-sessions')
         .then(response => response.json())
         .then(data => {
+            console.log("inside");
+            console.log(state_url);
             state.sessions = data.sessions;
 
             $('#selectSession').empty();
@@ -223,7 +230,13 @@ window.addEventListener('DOMContentLoaded', function(){
                 list.append(new Option(session, session));
             }
 
-            updateSession(data.sessions[0]);
+            var ix = state.sessions.indexOf(state_url.session);
+            if(ix != -1) {
+                list.val(state_url.session);
+                updateSession(state_url.session, state_url);
+            } else {
+                updateSession(data.sessions[0]);
+            }
         })
 
     $('#selectSession').select2({
@@ -265,7 +278,7 @@ function matcher(params, data) {
     return data;
 }
 
-function updateSession(session) {
+function updateSession(session, state_url) {
     fetch('/get-trials/' + session)
         .then(response => response.json())
         .then(data => {
@@ -276,6 +289,7 @@ function updateSession(session) {
 
             $('#selectVideo').empty();
             var list = $("#selectVideo");
+            var vidname_folder_ix = {};
             for(var folder_num=0; folder_num < data.folders.length; folder_num++) {
                 console.log(folder_num);
                 var folder = data.folders[folder_num];
@@ -285,21 +299,35 @@ function updateSession(session) {
                     file.folder = folder.folder;
                     var text = file.vidname + " -- " + file.folder;
                     var key = ix + "";
+                    vidname_folder_ix[text] = key;
                     state.trials[key] = file;
                     list.append(new Option(text, key));
                     ix += 1;
                 }
             }
 
-            updateTrial(state.trials["0"]);
+            var key = "0";
+            if(state_url) {
+                var text = state_url.trial + " -- " + state_url.folder;
+                var test = vidname_folder_ix[text]
+                if(test) {
+                    key = test;
+                }
+            }
+
+            updateTrial(state.trials[key]);
+            list.val(key);
 
         });
 }
 
 function updateTrial(trial) {
     console.log(trial);
+    var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
+    window.location.hash = "#" + url_suffix;
+
     var url;
-    url = '/pose3d/' + trial.session + "/" + trial.folder + "/" + trial.vidname;
+    url = '/pose3d/' + url_suffix;
     state.data = undefined;
     fetch(url)
         .then(response => response.json())
@@ -309,7 +337,7 @@ function updateTrial(trial) {
             drawFrame(true);
         });
 
-    url = '/pose2dproj/' + trial.session + "/" + trial.folder + "/" + trial.vidname;
+    url = '/pose2dproj/' + url_suffix;
     state.data2d = undefined;
     fetch(url)
         .then(response => response.json())
@@ -355,18 +383,6 @@ function updateTrial(trial) {
         }, false);
     }
 }
-
-// var check = 0;
-// function toggleKeypoints() {
-//     var kps = null;
-//     if(check == 0) {
-//         kps = keypoints2;
-//     } else {
-//         kps = keypoints;
-//     }
-//     check = 1-check;
-//     updateKeypoints(kps);
-// }
 
 
 var vid_fps = 60.0;
