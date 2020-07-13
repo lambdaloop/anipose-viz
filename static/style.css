@@ -8,6 +8,11 @@ html, body {
     background-color: #181A1B;
 }
 
+p {
+    text-align: center;
+    color: white;
+}
+
 #header {
     width: 100%;
 }
@@ -29,8 +34,10 @@ html, body {
 }
 
 #renderCanvas {
-    width   : 550px;
-    height  : 550px;
+    width   : 70%;
+    height  : 30%;
+    max-width: 440px;
+    max-height: 440px;
     padding-left: 0;
     padding-right: 0;
     margin-left: auto;

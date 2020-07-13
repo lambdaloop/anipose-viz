@@ -396,22 +396,22 @@ var prev_num = 0;
 function drawFrame(force) {
     if(!playing && !force) return;
     var ft = state.videos[0].currentTime * vid_fps;
-    var diff = ft - framenum;
-    if(ft > 5) {
-        rate_estimate = 0.9 * rate_estimate + 0.1 * diff;
-    }
-    if(Math.abs(diff) > 6) {
-        framenum = ft;
-    } else {
-        framenum += rate_estimate;
-    }
-    prev_num = ft;
+    // var diff = ft - framenum;
+    // if(ft > 5) {
+    //     rate_estimate = 0.9 * rate_estimate + 0.1 * diff;
+    // }
+    // if(Math.abs(diff) > 6) {
+    //     framenum = ft;
+    // } else {
+    //     framenum += rate_estimate;
+    // }
+    // prev_num = ft;
     // console.log(ft);
     // console.log(rate_estimate, framenum, ft, ft - framenum);
     // if(Math.abs(ft - framenum) > 5) {
     //     framenum = ft;
     // }
-    framenum = ft;
+    framenum = Math.round(ft+1);
 
     const fix = Math.max(0, Math.min(Math.floor(framenum), state.data.length-1));
     setTimeout(function() {
@@ -435,6 +435,7 @@ function play() {
         state.videos[i].preload = "auto";
         state.videos[i].play();
     }
+    // state.videos[0].play();
     setTimeout(drawFrame, 150.0);
 }
 
