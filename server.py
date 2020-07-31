@@ -189,6 +189,10 @@ def get_3d(session, folders, filename):
         vecs.append(vec)
     vecs = np.array(vecs).swapaxes(0, 1)
 
+    lengths = np.linalg.norm(vecs[:,0] - vecs[:,1], axis=1)
+    L = np.median(lengths)
+    vecs = vecs / L * 0.22;
+
     return jsonify(vecs.tolist())
 
 @app.route('/pose2dproj/<session>/<folders>/<filename>')

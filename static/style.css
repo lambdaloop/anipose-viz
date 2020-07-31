@@ -10,11 +10,9 @@ html, body {
 
 p {
     text-align: center;
-    color: white;
 }
 
-span {
-    text-align: center;
+.white  {
     color: white;
 }
 
