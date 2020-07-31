@@ -332,6 +332,10 @@ function updateTrial(trial) {
     var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
     window.location.hash = "#" + url_suffix;
 
+    playing = false;
+    updateSpeedText();
+    updatePlayPauseButton();
+
     var url;
     url = '/pose3d/' + url_suffix;
     state.data = undefined;
@@ -393,6 +397,8 @@ function updateTrial(trial) {
     }
 
     state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
+
+
 }
 
 var video_speed = 0.2;
