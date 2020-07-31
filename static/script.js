@@ -191,6 +191,10 @@ window.addEventListener('DOMContentLoaded', function(){
         engine.resize();
     });
 
+    var progressBar = document.getElementById("progressBar");
+    progressBar.addEventListener(
+        "mousedown", function(e) { setPlayPosition(e.pageX); },
+        false);
     // state.trial = {
     //     session: "5.16.19",
     //     folder: "Fly 2_0",
@@ -261,7 +265,7 @@ window.addEventListener('DOMContentLoaded', function(){
         updateTrial(trial)
     });
 
-
+    updateSpeedText();
 });
 
 function matcher(params, data) {
@@ -319,6 +323,8 @@ function updateSession(session, state_url) {
             list.val(key);
 
         });
+
+
 }
 
 function updateTrial(trial) {
@@ -380,11 +386,16 @@ function updateTrial(trial) {
             state.containers[i].style.width = width +"px";
             state.containers[i].style.height = height + "px";
 
+            if(i == 0) {
+                updateProgressBar();
+            }
         }, false);
     }
+
+    state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
 }
 
-
+var video_speed = 0.2;
 var vid_fps = 60.0;
 var slowdown = 0.5;
 var fps = 60.0;
@@ -418,8 +429,37 @@ function drawFrame(force) {
         updateKeypoints(state.data[fix])
         draw2D(state.data2d[fix]);
     }, 0);
-    // setTimeout(drawFrame, 1000.0/fps);
-    window.requestAnimationFrame(drawFrame);
+    setTimeout(drawFrame, 1000.0/fps);
+    // window.requestAnimationFrame(drawFrame);
+}
+
+function updateProgressBar() {
+    var video = state.videos[0];
+    var progressBar = document.getElementById('progressBar');
+    var percentage = Math.floor((100 / video.duration) * video.currentTime);
+    progressBar.value = percentage;
+    progressBar.innerHTML = percentage + '% played';
+}
+
+// Set the play position of the video based on the mouse click at x
+function setPlayPosition(x) {
+    var progressBar = document.getElementById("progressBar");
+    var value = (x - findPos(progressBar));
+    var timeToSet = ((state.videos[0].duration / progressBar.offsetWidth) * value);
+
+    for(var i=0; i<state.videos.length; i++) {
+        state.videos[i].currentTime = timeToSet;
+    }
+    drawFrame(true);
+}
+
+// Find the real position of obj
+function findPos(obj) {
+    var curleft = 0;
+    if (obj.offsetParent) {
+        do { curleft += obj.offsetLeft; } while (obj = obj.offsetParent);
+    }
+    return curleft;
 }
 
 
@@ -450,6 +490,50 @@ function pause() {
     playing = false;
     updateKeypoints(state.data[framenum])
     draw2D(state.data2d[framenum]);
+}
+
+function togglePlayPause() {
+    if(!playing) {
+        play();
+    } else {
+        pause();
+    }
+    updatePlayPauseButton();
+}
+
+function updatePlayPauseButton() {
+    var button = document.getElementById("play")
+    if(playing) {
+        button.innerHTML = "pause";
+    } else {
+        button.innerHTML = "play";
+    }
+}
+
+function slowdownVideo() {
+    slowdown = slowdown / Math.sqrt(2);
+    if(playing) { play(); }
+    updateSpeedText();
+}
+
+function speedupVideo() {
+    slowdown = slowdown * Math.sqrt(2);
+    if(playing) { play(); }
+    updateSpeedText();
+}
+
+function updateSpeedText() {
+    var full_slow = slowdown * video_speed;
+    var text = "";
+    if(Math.abs(full_slow - 1.0) < 1e-3) {
+        text = "actual speed";
+    } else if(full_slow < 1.0) {
+        text = "slowed x" + (1/full_slow).toFixed(1);
+    } else if(full_slow > 1.0) {
+        text = "sped up x" + full_slow.toFixed(1);
+    }
+    var span = document.getElementById("speed");
+    span.innerHTML = text;
 }
 
 function updateKeypoints(kps) {

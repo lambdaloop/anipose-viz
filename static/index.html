@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
-        <title>Babylon - Getting Started</title>
+        <title>Anipose visualization</title>
         <!--- Link to the last version of BabylonJS --->
         <script src="https://preview.babylonjs.com/babylon.js"></script>
         <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -23,9 +23,14 @@
             <select id="selectVideo" name="video"></select>
             </div>
         </div>
-        <div id="buttons">
-            <button id="play" onclick="play();">play</button>
-            <button id="pause" onclick="pause();">pause</button>
+        <div id="speedButtons" class="buttons">
+            <button id="slowdown" onclick="slowdownVideo()">slow down</button>
+            <button id="speedup" onclick="speedupVideo()">speed up</button>
+            <span id="speed">slowed 10x</span>
+        </div>
+        <div id="playButtons" class="buttons">
+            <button id="play" onclick="togglePlayPause();">play</button>
+            <progress id='progressBar' min='0' max='100' value='0'>0% played</progress>
         </div>
         <div id="vidlist">
             <div class="container">

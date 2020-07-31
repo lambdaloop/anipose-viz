@@ -13,8 +13,14 @@ p {
     color: white;
 }
 
+span {
+    text-align: center;
+    color: white;
+}
+
 #header {
     width: 100%;
+    margin-bottom: 5px;
 }
 
 #selectSession {
@@ -35,7 +41,7 @@ p {
 
 #renderCanvas {
     width   : 70%;
-    height  : 30%;
+    height  : 40%;
     max-width: 440px;
     max-height: 440px;
     padding-left: 0;
@@ -69,15 +75,17 @@ video {
     padding-right: 0;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 15px;
     width: 95%;
     text-align: center;
 }
-#buttons {
+.buttons {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 300px;
+    width: 350px;
     text-align: center;
+    margin-bottom: 4px;
 }
 .vid {
     position: absolute;
@@ -91,7 +99,6 @@ video {
     height: 100%;
     width: 100%;
     z-index: 10;
-    /*              background-color:rgba(255,0,0,0.5); */
 }
 .container {
     width: 300px;
@@ -100,4 +107,58 @@ video {
     display: inline-block;
     padding: 0;
     margin: 0;
+}
+
+#play {
+    width: 50px;
+}
+
+button {
+    background-color: #ccc;
+    border: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 20px;
+    border-radius: 2px;
+}
+
+button:hover {
+    background-color: #ddd;
+}
+
+progress[value]  {
+    display: inline-block;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    width: 200px;
+    height: 15px;
+
+    background-color: #ddd;
+    border-radius: 2px;
+    padding: 0;
+    /* margin-top: 5px; */
+    /* margin-bottom: 5px; */
+
+    /* remove border in Firefox */
+    border: 2px solid #777;
+
+    /* /\* IE *\/ */
+    /* color: #777; */
+}
+
+/* Chrome */
+progress[value]::-webkit-progress-bar {
+    background-color: #ddd;
+         border-radius: 2px;
+}
+
+progress[value]::-webkit-progress-value {
+    background-color: #777;
+}
+
+/* Firefox */
+progress[value]::-moz-progress-bar {
+    background-color: #777;
 }
