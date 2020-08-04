@@ -332,6 +332,8 @@ function updateTrial(trial) {
     var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
     window.location.hash = "#" + url_suffix;
 
+    state.camnames = trial.camnames;
+
     playing = false;
     updateSpeedText();
     updatePlayPauseButton();
@@ -433,7 +435,7 @@ function drawFrame(force) {
     const fix = Math.max(0, Math.min(Math.floor(framenum), state.data.length-1));
     setTimeout(function() {
         updateKeypoints(state.data[fix])
-        draw2D(state.data2d[fix]);
+        draw2D(fix);
     }, 0);
     setTimeout(drawFrame, 1000.0/fps);
     // window.requestAnimationFrame(drawFrame);
@@ -495,7 +497,7 @@ function pause() {
     var framenum = Math.round(t * vid_fps);
     playing = false;
     updateKeypoints(state.data[framenum])
-    draw2D(state.data2d[framenum]);
+    draw2D(framenum);
 }
 
 function togglePlayPause() {
@@ -602,14 +604,17 @@ function drawPoint(ctx, x, y, color) {
 //     ctx.stroke();
 }
 
-function draw2D(all_kps) {
+function draw2D(framenum) {
+    if(!state.data2d) return;
+
     for(var vidnum=0; vidnum<state.videos.length; vidnum++) {
         var vid = state.videos[vidnum];
         var ratio = vid.clientWidth / vid.videoWidth;
         var canvas = state.canvases[vidnum];
         var ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        var kps = all_kps[vidnum];
+        var cname = state.camnames[vidnum];
+        var kps = state.data2d[cname][framenum];
         for(var i=0; i<scheme.length; i++) {
             var links = scheme[i];
             var col = colors[i];

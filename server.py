@@ -121,8 +121,6 @@ def load_2d_projections(session_path, fname):
     config = toml.load(config_fname)
 
     data = pd.read_csv(fname)
-    
-    offsets = [config['cameras'][name]['offset'] for name in cgroup.get_names()]
 
     M = np.identity(3)
     center = np.zeros(3)
@@ -150,15 +148,22 @@ def load_2d_projections(session_path, fname):
     points_2d_proj_flat = cgroup.project(all_points_flat_t)
     points_2d_proj = points_2d_proj_flat.reshape(n_cams, n_frames, n_joints, 2)
 
-    points_2d_proj = points_2d_proj.swapaxes(0, 1)
+    # points_2d_proj = points_2d_proj.swapaxes(0, 1)
+    cam_names = cgroup.get_names()
+    offsets = [config['cameras'][name]['offset'] for name in cam_names]
 
     for i in range(n_cams):
         dx = offsets[i][0]
         dy = offsets[i][1]
-        points_2d_proj[:, i, :, 0] -= dx
-        points_2d_proj[:, i, :, 1] -= dy
-    
-    return np.int32(np.round(points_2d_proj))
+        points_2d_proj[i, :, :, 0] -= dx
+        points_2d_proj[i, :, :, 1] -= dy
+
+    points_2d_proj = np.int32(np.round(points_2d_proj))
+    out = dict()
+    for i, cname in enumerate(cam_names):
+        out[cname] = points_2d_proj[i].tolist()
+
+    return out
 
 
 # a route where we will display a welcome message via an HTML template
@@ -203,7 +208,7 @@ def get_2d_proj(session, folders, filename):
     path = safe_join(path, 'pose-3d', filename + '.csv')
 
     projs = load_2d_projections(session_path, path)
-    return jsonify(projs.tolist())
+    return jsonify(projs)
 
 @app.route('/video/<session>/<folders>/<filename>')
 def get_video(session, folders, filename):
@@ -223,8 +228,10 @@ def group_by_trial(fnames, cam_regex):
     out = []
     for name in names:
         fnames = [true_basename(x) for x in cam_videos[name]]
+        cnames = [get_cam_name(cam_regex, f) for f in fnames]
         out.append({
             'vidname': name,
+            'camnames': cnames,
             'files': fnames
         })
     return out
