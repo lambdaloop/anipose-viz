@@ -10,6 +10,7 @@ from glob import glob
 import os
 from collections import deque, defaultdict
 import re
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -27,7 +28,6 @@ prefix = '/media/turritopsis/pierre/gdrive/viz'
 
 cam_regex = "Cam-? ?([A-Z])"
 
-sessions = []
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -35,11 +35,6 @@ def atoi(text):
 def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
-(root, dirs, files) = next(os.walk(prefix))
-dirs = sorted(dirs, key=natural_keys)
-for folder in dirs:
-    if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
-        sessions.append(folder)
 
 # creates a Flask application, named app
 app = Flask(__name__)
@@ -174,6 +169,16 @@ def root():
 
 @app.route('/get-sessions')
 def get_sessions():
+    sessions = []
+    (root, dirs, files) = next(os.walk(prefix))
+    dirs = sorted(dirs, key=natural_keys)
+    for folder in dirs:
+        if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
+            sessions.append(folder)
+    # sort in reverse chronological order
+    sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
+    sessions = list(reversed(sessions))
+
     return jsonify({
         'sessions': sessions
     })
@@ -253,6 +258,8 @@ def get_trials(session):
             'files': fnames
         }
         out.append(d)
+
+    out = sorted(out, key=lambda x: natural_keys(x['folder']))
 
     return jsonify({
         "session": session,
