@@ -5,6 +5,7 @@ from flask import jsonify
 from flask import request, safe_join, send_from_directory
 from flask_compress import Compress
 # from flask_squeeze import Squeeze
+from flask_ipban import IpBan
 
 from glob import glob
 import os
@@ -19,7 +20,8 @@ from aniposelib.cameras import CameraGroup
 import toml
 
 ## folders that are needed within each session
-## angles, pose-2d-filtered, pose-3d, videos-raw-slow
+## pose-3d, videos-raw-slow
+## angles, pose-2d-filtered not currently needed but may be in the future
 ## Calibration (with calibration.toml)
 ## config.toml
 
@@ -43,6 +45,10 @@ app = Flask(__name__)
 Compress(app)
 # squeeze = Squeeze()
 # squeeze.init_app(app)
+
+ip_ban = IpBan(ban_seconds=200)
+ip_ban.init_app(app)
+ip_ban.load_nuisances()
 
 def true_basename(fname):
     basename = os.path.basename(fname)
