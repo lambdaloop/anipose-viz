@@ -376,7 +376,7 @@ function updateTrial(trial) {
         var vid = state.videos[i];
         vid.index = i;
 
-        vid.addEventListener("loadedmetadata", function(e) {
+        vid.addEventListener("loadeddata", function(e) {
             var i = this.index;
             var width = this.clientWidth;
             var height = this.clientHeight;
