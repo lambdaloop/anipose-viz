@@ -6,6 +6,8 @@ html, body {
     margin  : 0;
     padding : 0;
     background-color: #181A1B;
+    font-size: 16px;
+    font-family: "Times New Roman", Times, Serif;
 }
 
 p {
@@ -22,7 +24,12 @@ p {
 }
 
 #selectSession {
-    width: 100px;
+    width: 198px;
+    display: block;
+}
+
+#selectBehavior {
+    width: 198px;
     display: block;
 }
 
@@ -31,10 +38,17 @@ p {
     display: block;
 }
 
+#toggle2d {
+    width: 200px;
+    display: block;
+    margin: 0 auto;
+    margin-top: 10px
+}
+
 .selectVideoContainer {
     margin: 0 auto;
     display: block;
-    width: 500px;
+    width: 400px;
 }
 
 #renderCanvas {
@@ -61,6 +75,40 @@ p {
     width: 60px;
     height: 20px;
 }
+.behaviorName {
+    float: left;
+    display: block;
+    width: 15%;
+    height:22px;
+    position: relative; 
+    background-color: black;
+    text-align: center;
+    font-size: 16px;
+    font-family: "Times New Roman", Times, Serif;
+    color: white;
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-top:5px;
+    margin-bottom:auto;
+    border-radius:2px;
+    padding:0px;
+    overflow: scroll;
+    box-sizing: border-box;
+}
+.behaviorCanvas {
+    float: left;
+    display: block;
+    width: 80%;
+    height:22px;
+    position: relative;
+    background-color: black;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top:5px;
+    border-radius:2px;
+    cursor: default;
+    box-sizing: border-box;
+}
 video {
     height: 200px;
     top: 0;
@@ -83,7 +131,6 @@ video {
     margin-right: auto;
     width: 350px;
     text-align: center;
-    margin-bottom: 4px;
 }
 .vid {
     position: absolute;
@@ -106,9 +153,9 @@ video {
     padding: 0;
     margin: 0;
 }
-
-#play {
-    width: 50px;
+.behaviorContainer {
+    max-height: 30px
+    overflow:auto;
 }
 
 button {
@@ -116,22 +163,46 @@ button {
     border: 0;
     margin-top: 0;
     margin-bottom: 0;
-    height: 20px;
+    height: 22px;
     border-radius: 2px;
+    font-size: 16px;
+    font-family: "Times New Roman", Times, Serif;
+}
+
+button#play {
+    display: block;
+    width: 15%;
+    float:left;
+    height: 22px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 5px;
+    border: 1px solid white;
+    padding: 0px;
+}
+div#playButtons.buttons {
+    height: 32px;
+    width: 100%;
 }
 
 button:hover {
     background-color: #ddd;
 }
 
+progress#progressBar {
+    display: block;
+    width: 80%;
+    float: left;
+    height: 22px;
+    border: 1px solid #777;
+    margin-top:5px;
+    padding: 0px;
+}
+
 progress[value]  {
-    display: inline-block;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-
-    width: 200px;
-    height: 15px;
 
     background-color: #ddd;
     border-radius: 2px;
