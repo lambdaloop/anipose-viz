@@ -183,18 +183,16 @@ window.addEventListener('DOMContentLoaded', function(){
 
     // call the createScene function
     var scene = createScene();
-
     var divFps = document.getElementById("fps");
 
     // added
-    state.filterBehavior = ''
-    var selectBehavior = document.createElement("select");
-    selectBehavior.id = 'selectBehavior';
-    document.body.appendChild(selectBehavior, document.getElementById("header"));
-
-    var actogram = document.createElement('div');
-    actogram.id = 'actogram'
-    document.body.insertBefore(actogram, document.getElementById('vidlist'));
+    state.filterBehavior = '';
+    var selectBehavior = document.getElementById("selectBehavior");
+    var actogram = document.getElementById("actogram");
+    var toggle2d = document.getElementById('toggle2d');
+    toggle2d.addEventListener(
+        "click", function() { toggle2D(); },
+        false);
 
     // run the render loop
     engine.runRenderLoop(function(){
@@ -206,14 +204,6 @@ window.addEventListener('DOMContentLoaded', function(){
     window.addEventListener('resize', function(){
         engine.resize();
     });
-
-    // added
-    var toggle2d = document.createElement('button');
-    toggle2d.id = 'toggle2d';
-    document.body.insertBefore(toggle2d, document.getElementById('vidlist'));
-    toggle2d.addEventListener(
-        "click", function() { toggle2D(); },
-        false);
 
     var progressBar = document.getElementById("progressBar");
     progressBar.addEventListener(
