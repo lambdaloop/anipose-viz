@@ -149,7 +149,11 @@ def get_unique_behaviors(session_path):
 	behavior_dict = {}
 	for filename in sorted(filenames):
 		video_data = data[data['rel_path'] == filename]
-		behavior_dict[filename] = [x for x in behaviors if not video_data[x + '_bout_number'].isnull().values.all()]
+		video_dict = {}
+		for behavior in behaviors:
+			video_dict[behavior] = not video_data[behavior + '_bout_number'].isnull().values.all()
+			# behavior_dict[filename] = [x for x in behaviors if not video_data[x + '_bout_number'].isnull().values.all()]
+		behavior_dict[filename] = video_dict
 
 	return behaviors, behavior_dict
 

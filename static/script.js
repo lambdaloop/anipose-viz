@@ -185,7 +185,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var scene = createScene();
     var divFps = document.getElementById("fps");
 
-    // added
+
     state.filterBehavior = '';
     var selectBehavior = document.getElementById("selectBehavior");
     var actogram = document.getElementById("actogram");
@@ -278,15 +278,13 @@ window.addEventListener('DOMContentLoaded', function(){
     $('#selectVideo').on('select2:select', function (e) {
         var d = $('#selectVideo').select2('data');
         var trial = state.trials[d[0].id];
-        updateTrial(trial)
+        updateTrial(trial);
     });
 
     $('#selectBehavior').on('select2:select', function (e) {
-        var b = $('#selectBehavior').select2('data');
-        state.filterBehavior = b[0].id;
-        var d = $('#selectSession').select2('data');
-        var session = d[0].id;
-        updateSession(session);
+        var d = $('#selectBehavior').select2('data');
+        state.filterBehavior = d[0].id;
+        filterTrials();
     });
 
     updateSpeedText();
@@ -306,28 +304,51 @@ function matcher(params, data) {
     return data;
 }
 
-// added
 function getTrialsByBehavior() {
+
     var sessionBehaviors = state.possible.sessionBehaviors; 
     var trialBehaviors = state.possible.trialBehaviors; 
     var filenames = Object.keys(trialBehaviors);
+    var trialsByBehavior = {};
 
-    trialsByBehavior = {}
-    trialsByBehavior[''] = filenames
+    var all_vids = {};
+    for (var j in filenames) {
+        all_vids[filenames[j]] = true;
+    }
+    trialsByBehavior[''] = all_vids;
+
     for (var i in sessionBehaviors) {
-        videos = [];
+        var videos = {};
         for (var j in filenames) {
-            if (trialBehaviors[filenames[j]].includes(sessionBehaviors[i])) {
-                videos.push(filenames[j])
-            }
+            videos[filenames[j]] = trialBehaviors[filenames[j]][sessionBehaviors[i]];
         }
         trialsByBehavior[sessionBehaviors[i]] = videos;
     }
     return trialsByBehavior;
 }
 
+function filterTrials() {
+
+    var ixs = [];
+    $('#selectVideo').empty();
+    var filteredTrials = $("#selectVideo");
+    for (var j in state.trials) {
+        var trial = state.trials[j]
+        var rel_path = trial.session + '/' + trial.folder + '/' + trial.vidname
+        if (state.trialsByBehavior[state.filterBehavior][rel_path]) {
+            var text = trial.vidname + " -- " + trial.folder;
+            var key = j + "";
+            ixs.push(j)
+            filteredTrials.append(new Option(text, key))
+        }
+    }
+    updateTrial(state.trials[ixs[0]]);
+}
+
 function updateSession(session, state_url) {
 
+    state.trialsByBehavior = undefined;
+    state.trials = undefined;
     fetch('/get-trials/' + session)
         .then(response => response.json())
         .then(data => {
@@ -336,7 +357,6 @@ function updateSession(session, state_url) {
             state.trialsByBehavior = getTrialsByBehavior();
             state.trials = [];
 
-            // added
             $('#selectBehavior').empty();
             var behaviorList = $("#selectBehavior");
             behaviorList.append(new Option('', ''));
@@ -351,21 +371,17 @@ function updateSession(session, state_url) {
             var vidname_folder_ix = {};
             for(var folder_num=0; folder_num < data.folders.length; folder_num++) {
                 console.log(folder_num);
-                var folder = data.folders[folder_num]; // here
+                var folder = data.folders[folder_num]; 
                 for(var file_num=0; file_num < folder.files.length; file_num++) {
                     var file = folder.files[file_num];
                     file.session = data.session;
                     file.folder = folder.folder;
-                    var rel_path = file.session + '/' + file.folder + '/' + file.vidname
                     var text = file.vidname + " -- " + file.folder;
                     var key = ix + "";
                     vidname_folder_ix[text] = key;
                     state.trials[key] = file;
-                    // added
-                    if (state.trialsByBehavior[state.filterBehavior].includes(rel_path)) {
-                        list.append(new Option(text, key));
-                        ix += 1;
-                    }
+                    list.append(new Option(text, key));
+                    ix++;
                 }
             }
 
@@ -393,7 +409,6 @@ function updateTrial(trial) {
 
     state.camnames = trial.camnames;
 
-    // added
     playing = false;
     hide2d = false;
     updateSpeedText();
@@ -421,7 +436,6 @@ function updateTrial(trial) {
             drawFrame(true);
         });
 
-    // added
     url = '/behavior/' + url_suffix;
     state.behaviors = undefined;
     state.behaviorIds = undefined;
@@ -516,7 +530,6 @@ function drawFrame(force) {
     // window.requestAnimationFrame(drawFrame);
 }
 
-// added
 function getBehaviorIds() {
 
     var id = 0;
@@ -667,7 +680,6 @@ function updatePlayPauseButton() {
     }
 }
 
-// added
 function toggle2D() {
     if (!display2d) {
         display2d = true;
@@ -678,7 +690,6 @@ function toggle2D() {
     updateToggle2DButton();
 }
 
-// added
 function updateToggle2DButton() {
     var button = document.getElementById("toggle2d")
     if(display2d) {
@@ -751,7 +762,7 @@ function updateKeypoints(kps) {
 }
 
 function drawPath(ctx, path, color) {
-    if(!display2d) return; // added
+    if(!display2d) return; 
 
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -768,7 +779,7 @@ function drawPath(ctx, path, color) {
 }
 
 function drawPoint(ctx, x, y, color) {
-    if(!display2d) return; // added
+    if(!display2d) return; 
 
     ctx.beginPath();
     ctx.arc(x, y, 2, 0, 2 * Math.PI, false);
