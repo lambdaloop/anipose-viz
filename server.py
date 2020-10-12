@@ -76,7 +76,7 @@ def get_folders(path):
 
 def get_possible_behaviors(columns):
 	cols = [x for x in columns if '_prob' in x and '_filt' not in x]
-	# cols = [x for x in cols if 'nan' not in x]
+	cols = [x for x in cols if 'nan' not in x]
 	behaviors = [x.rsplit('_', 1)[:-1][0] for x in cols]
 	return sorted(behaviors)
 
@@ -115,28 +115,6 @@ def process_all(source_dir, process_session, **args):
 		q.extend(next_folders)
 
 	return output
-
-# compute in UI code
-# def sort_by_behavior(session_path):
-
-# 	path = safe_join(session_path, 'summaries', 'behavior_labels.csv')
-# 	data = pd.read_csv(path)
-# 	data['rel_path'] = data[['date_parsed', 'folder_1', 'filename']].apply(lambda row: safe_join(*row), axis=1)
-
-# 	cols = [x for x in data.columns if '_prob' in x and '_filt' not in x]
-# 	# cols = [x for x in cols if 'nan' not in x]
-# 	behaviors = [x.rsplit('_', 1)[:-1][0] for x in cols]
-
-# 	behavior_dict = {}
-# 	for behavior in behaviors:
-# 		videos = []
-# 		for filename in list(set(data['rel_path'])):
-# 			video_data = data[data['rel_path'] == filename]
-# 			if not not video_data[x + '_bout_number'].isnull().values.all():
-# 				videos.append(filename) 
-# 		behavior_dict[behavior] = videos
-
-# 	return behavior_dict 
 
 def get_unique_behaviors(session_path):
 
@@ -256,6 +234,7 @@ def get_3d(session, folders, filename):
 
 @app.route('/pose2dproj/<session>/<folders>/<filename>')
 def get_2d_proj(session, folders, filename):
+
 	folders = folders.split('|')
 	session_path = safe_join(prefix, session)
 	path = safe_join(session_path, *folders)
@@ -269,30 +248,11 @@ def get_behaviors(session, folders, filename):
 
 	folders = folders.split('|')
 	session_path = safe_join(prefix, session)
-	video_path = safe_join(session, *folders, filename)
-	path = safe_join(session_path, 'summaries', 'behavior_labels.csv')
-
-	data = pd.read_csv(path)
-	data['rel_path'] = data[['date_parsed', 'folder_1', 'filename']].apply(lambda row: safe_join(*row), axis=1)
-	data = data[data.rel_path == video_path]
-	behaviors = get_possible_behaviors(data.columns)
-
-	behavior_labels = {}
-	for behavior in behaviors:
-		bout_numbers = np.unique(data[behavior + '_bout_number'])
-		bout_numbers = bout_numbers[np.isfinite(bout_numbers)]
-		bout_list = []
-		for bn in bout_numbers:
-			bout_dict = dict()
-			frames = np.array(data[data[behavior + '_bout_number'] == bn].fnum)
-			bout_dict['behavior'] = behavior
-			bout_dict['start'] = int(frames[0])
-			bout_dict['end'] = int(frames[-1])
-			bout_list.append(bout_dict)
-		if len(bout_list) > 0:
-			behavior_labels[behavior] = bout_list
-
-	return jsonify(behavior_labels)
+	path = safe_join(session_path, 'behaviors.json')
+	with open(path) as json_file:
+		behavior_dict = json.load(json_file)
+	behaviors = behavior_dict[folders[0]]
+	return jsonify(behaviors)
 
 @app.route('/video/<session>/<folders>/<filename>')
 def get_video(session, folders, filename):

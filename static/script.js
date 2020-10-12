@@ -306,6 +306,8 @@ function matcher(params, data) {
 
 function getTrialsByBehavior() {
 
+    console.log(state.behaviorDict)
+
     var sessionBehaviors = state.possible.sessionBehaviors; 
     var trialBehaviors = state.possible.trialBehaviors; 
     var filenames = Object.keys(trialBehaviors);
@@ -347,6 +349,8 @@ function filterTrials() {
 
 function updateSession(session, state_url) {
 
+    document.getElementById('actogram').innerHTML = '';
+    state.behaviorList = undefined
     state.trialsByBehavior = undefined;
     state.trials = undefined;
     fetch('/get-trials/' + session)
@@ -399,7 +403,6 @@ function updateSession(session, state_url) {
 
         });
 
-
 }
 
 function updateTrial(trial) {
@@ -417,7 +420,6 @@ function updateTrial(trial) {
 
     var url;
     url = '/pose3d/' + url_suffix;
-    state.data = undefined;
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -434,18 +436,6 @@ function updateTrial(trial) {
             console.log("pose 2d updated");
             state.data2d = data;
             drawFrame(true);
-        });
-
-    url = '/behavior/' + url_suffix;
-    state.behaviors = undefined;
-    state.behaviorIds = undefined;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            console.log("behavior updated");
-            state.behaviors = data;
-            state.behaviorIds = getBehaviorIds();
-            drawActogram();
         });
 
     var vidlist = document.getElementById("vidlist");
@@ -489,6 +479,22 @@ function updateTrial(trial) {
 
     state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
 
+    var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
+    window.location.hash = "#" + url_suffix;
+    
+    url = '/behavior/' + url_suffix;
+    state.behaviorDict = undefined;
+    state.behaviors = undefined;
+    state.uniqueTrialBehaviors = undefined;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log("behavior updated");
+            state.behaviorDict = data;
+            state.behaviors = data[trial.vidname];
+            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+            drawActogram();
+        });
 }
 
 var video_speed = 0.2;
@@ -530,19 +536,13 @@ function drawFrame(force) {
     // window.requestAnimationFrame(drawFrame);
 }
 
-function getBehaviorIds() {
-
-    var id = 0;
-    var behaviorIds = {};
-    state.uniqueBehaviors = Object.keys(state.behaviors).sort();
-    for (var i in state.uniqueBehaviors) {
-        behaviorData = state.behaviors[state.uniqueBehaviors[i]];
-        for (var j in behaviorData) {
-            behaviorIds[id] = behaviorData[j];
-            id++; 
-        }
+function getUniqueTrialBehaviors() {
+    var uniqueTrialBehaviors = new Set();
+    for (var i in state.behaviors) {
+        uniqueTrialBehaviors.add(state.behaviors[i]['behavior']);
     }
-    return behaviorIds;
+    var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+    return uniqueTrialBehaviors
 }
 
 function drawActogram() {
@@ -550,42 +550,42 @@ function drawActogram() {
     actogram.innerHTML = '';
     console.log(state.behaviors);
 
-    for (var i in state.uniqueBehaviors) {
+    for (var i in state.uniqueTrialBehaviors) {
 
         var behaviorContainer = document.createElement('div');
         behaviorContainer.id = "behaviorContainer";
-        behaviorContainer.style.height = '32px'
+        behaviorContainer.style.height = '32px';
         actogram.appendChild(behaviorContainer);
 
         var behaviorName = document.createElement('input');
         behaviorName.className = "behaviorName";
-        behaviorName.type = "text";
         behaviorName.readOnly = true;
-        behaviorName.value = state.uniqueBehaviors[i];
-        behaviorName.style.border = '1px solid ' + colors2[i%state.uniqueBehaviors.length];
+        behaviorName.value = state.uniqueTrialBehaviors[i];
+        behaviorName.style.border = '1px solid ' + colors2[i%state.uniqueTrialBehaviors.length];
         behaviorContainer.appendChild(behaviorName);
 
         var behaviorCanvas = document.createElement('canvas');
-        behaviorCanvas.id = state.uniqueBehaviors[i];
+        behaviorCanvas.id = state.uniqueTrialBehaviors[i];
         behaviorCanvas.className = 'behaviorCanvas';
-        drawBehavior(behaviorCanvas, colors2[i%state.uniqueBehaviors.length]);
+        drawBehavior(behaviorCanvas, colors2[i%state.uniqueTrialBehaviors.length]);
         behaviorContainer.appendChild(behaviorCanvas);
     }
 }
 
 function drawBehavior(behaviorCanvas, color) {
 
-    var nFrames = state.data.length;
+    var nFrames = 600;
     var ctx = behaviorCanvas.getContext("2d");
     behaviorCanvas, ctx = updateCanvas(behaviorCanvas, ctx);
 
     behaviorCanvas.style.border ='1px solid ' + color;
-    var bouts = state.behaviors[behaviorCanvas.id];
-    for (var i in bouts) {
-        var start = bouts[i]['start'];
-        var end = bouts[i]['end'];
-        ctx.fillStyle = color;
-        ctx.fillRect(Math.round(behaviorCanvas.width*(start/nFrames)), 0, Math.round(behaviorCanvas.width*((end-start)/nFrames)), behaviorCanvas.height);
+    for (var i in state.behaviors) {
+        if (state.behaviors[i]['behavior'] == behaviorCanvas.id) {
+            var start = state.behaviors[i]['start'];
+            var end = state.behaviors[i]['end'];
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.round(behaviorCanvas.width*(start/nFrames)), 0, Math.round(behaviorCanvas.width*((end-start)/nFrames)), behaviorCanvas.height);
+        }
     }    
 }
 
