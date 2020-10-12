@@ -46,7 +46,7 @@ Compress(app)
 # squeeze = Squeeze()
 # squeeze.init_app(app)
 
-ip_ban = IpBan(ban_seconds=200)
+ip_ban = IpBan(ban_seconds=3600, ban_count=5, persist=True, ipc=True)
 ip_ban.init_app(app)
 ip_ban.load_nuisances()
 
