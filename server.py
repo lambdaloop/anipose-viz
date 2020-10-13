@@ -116,24 +116,50 @@ def process_all(source_dir, process_session, **args):
 
 	return output
 
+
 def get_unique_behaviors(session_path):
 
-	path = safe_join(session_path, 'summaries', 'behavior_labels.csv')
-	data = pd.read_csv(path)
-	data['rel_path'] = data[['date_parsed', 'folder_1', 'filename']].apply(lambda row: safe_join(*row), axis=1)
-	filenames = list(set(data['rel_path']))
-	behaviors = get_possible_behaviors(data.columns)
+	session = os.path.basename(session_path)
+	path = safe_join(session_path, 'behaviors.json')
+	with open(path) as json_file:
+		behaviors = json.load(json_file)
 
-	behavior_dict = {}
-	for filename in sorted(filenames):
-		video_data = data[data['rel_path'] == filename]
-		video_dict = {}
-		for behavior in behaviors:
-			video_dict[behavior] = not video_data[behavior + '_bout_number'].isnull().values.all()
-			# behavior_dict[filename] = [x for x in behaviors if not video_data[x + '_bout_number'].isnull().values.all()]
-		behavior_dict[filename] = video_dict
+	session_behaviors = []
+	trial_behaviors = {}
+	folders = list(behaviors.keys())
+	for folder in folders: 
+		filenames = list(behaviors[folder].keys())
+		for file in filenames:
+			unique_behaviors = {} 
+			rel_path = safe_join(session, folder, file)
+			bouts = behaviors[folder][file]
+			for bout in bouts: 
+				behavior = bout['behavior']
+				unique_behaviors[behavior] = True
+				session_behaviors.append(behavior) 
+			trial_behaviors[rel_path] = unique_behaviors
+			
+	session_behaviors = list(set(session_behaviors))
+	return session_behaviors, trial_behaviors 
 
-	return behaviors, behavior_dict
+# def get_unique_behaviors(session_path):
+
+# 	path = safe_join(session_path, 'summaries', 'behavior_labels.csv')
+# 	data = pd.read_csv(path)
+# 	data['rel_path'] = data[['date_parsed', 'folder_1', 'filename']].apply(lambda row: safe_join(*row), axis=1)
+# 	filenames = list(set(data['rel_path']))
+# 	behaviors = get_possible_behaviors(data.columns)
+
+# 	behavior_dict = {}
+# 	for filename in sorted(filenames):
+# 		video_data = data[data['rel_path'] == filename]
+# 		video_dict = {}
+# 		for behavior in behaviors:
+# 			video_dict[behavior] = not video_data[behavior + '_bout_number'].isnull().values.all()
+# 			# behavior_dict[filename] = [x for x in behaviors if not video_data[x + '_bout_number'].isnull().values.all()]
+# 		behavior_dict[filename] = video_dict
+
+# 	return behaviors, behavior_dict
 
 def load_2d_projections(session_path, fname):
 	calib_fname = os.path.join(session_path, "Calibration", "calibration.toml")
@@ -251,7 +277,7 @@ def get_behaviors(session, folders, filename):
 	path = safe_join(session_path, 'behaviors.json')
 	with open(path) as json_file:
 		behavior_dict = json.load(json_file)
-	behaviors = behavior_dict[folders[0]]
+	behaviors = behavior_dict[folders[0]][filename]
 	return jsonify(behaviors)
 
 @app.route('/video/<session>/<folders>/<filename>')
@@ -285,7 +311,7 @@ def get_trials(session):
 	# session = request.args['session']
 	path = safe_join(prefix, session)
 	print(path)
-	session_behaviors, behavior_dict = get_unique_behaviors(path)
+	session_behaviors, trial_behaviors = get_unique_behaviors(path)
 	fnames_dict = process_all(path, get_video_fnames)
 	out = []
 	for key, fnames in fnames_dict.items():
@@ -304,7 +330,7 @@ def get_trials(session):
 	return jsonify({
 		"session": session,
 		"folders": out,
-		"trialBehaviors": behavior_dict,
+		"trialBehaviors": trial_behaviors,
 		"sessionBehaviors": session_behaviors
 	})
 

@@ -304,40 +304,16 @@ function matcher(params, data) {
     return data;
 }
 
-function getTrialsByBehavior() {
-
-    console.log(state.behaviorDict)
-
-    var sessionBehaviors = state.possible.sessionBehaviors; 
-    var trialBehaviors = state.possible.trialBehaviors; 
-    var filenames = Object.keys(trialBehaviors);
-    var trialsByBehavior = {};
-
-    var all_vids = {};
-    for (var j in filenames) {
-        all_vids[filenames[j]] = true;
-    }
-    trialsByBehavior[''] = all_vids;
-
-    for (var i in sessionBehaviors) {
-        var videos = {};
-        for (var j in filenames) {
-            videos[filenames[j]] = trialBehaviors[filenames[j]][sessionBehaviors[i]];
-        }
-        trialsByBehavior[sessionBehaviors[i]] = videos;
-    }
-    return trialsByBehavior;
-}
-
 function filterTrials() {
 
+    console.log(state.trials)
     var ixs = [];
     $('#selectVideo').empty();
     var filteredTrials = $("#selectVideo");
     for (var j in state.trials) {
         var trial = state.trials[j]
-        var rel_path = trial.session + '/' + trial.folder + '/' + trial.vidname
-        if (state.trialsByBehavior[state.filterBehavior][rel_path]) {
+        var rel_path = trial.session + '/' + trial.folder + '/' + trial.vidname;
+        if (state.possible.trialBehaviors[rel_path] !== undefined && state.possible.trialBehaviors[rel_path][state.filterBehavior]) {
             var text = trial.vidname + " -- " + trial.folder;
             var key = j + "";
             ixs.push(j)
@@ -351,20 +327,19 @@ function updateSession(session, state_url) {
 
     document.getElementById('actogram').innerHTML = '';
     state.behaviorList = undefined
-    state.trialsByBehavior = undefined;
     state.trials = undefined;
+    state.possible = undefined;
     fetch('/get-trials/' + session)
         .then(response => response.json())
         .then(data => {
             state.possible = data;
             state.session = data.session;
-            state.trialsByBehavior = getTrialsByBehavior();
             state.trials = [];
 
             $('#selectBehavior').empty();
             var behaviorList = $("#selectBehavior");
             behaviorList.append(new Option('', ''));
-            for (var i in data.sessionBehaviors) {
+            for (var i in data.sessionBehaviors.sort()) {
                 behaviorList.append(new Option(data.sessionBehaviors[i], data.sessionBehaviors[i]));
             }
             behaviorList.val(state.filterBehavior);
@@ -408,6 +383,7 @@ function updateSession(session, state_url) {
 function updateTrial(trial) {
     console.log(trial);
     var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
+    console.log(url_suffix)
     window.location.hash = "#" + url_suffix;
 
     state.camnames = trial.camnames;
@@ -442,6 +418,8 @@ function updateTrial(trial) {
     state.videos = vidlist.querySelectorAll("video");
     state.canvases = vidlist.querySelectorAll("canvas");
     state.containers = vidlist.querySelectorAll(".container");
+    state.videoLoaded = false;
+    state.behaviorLoaded = false;
 
     for(var i=0; i<state.videos.length; i++) {
         var video = state.videos[i];
@@ -455,7 +433,7 @@ function updateTrial(trial) {
         var vid = state.videos[i];
         vid.index = i;
 
-        vid.addEventListener("loadedmetadata", function(e) {
+        vid.addEventListener("loadeddata", function(e) {
             var i = this.index;
             var width = this.clientWidth;
             var height = this.clientHeight;
@@ -473,27 +451,30 @@ function updateTrial(trial) {
 
             if(i == 0) {
                 updateProgressBar();
+                state.videoLoaded = true;            
+                if (state.behaviorLoaded) {
+                    drawActogram();
+                }
             }
+
         }, false);
     }
 
     state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
-
-    var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
-    window.location.hash = "#" + url_suffix;
     
     url = '/behavior/' + url_suffix;
-    state.behaviorDict = undefined;
     state.behaviors = undefined;
     state.uniqueTrialBehaviors = undefined;
     fetch(url)
         .then(response => response.json())
         .then(data => {
             console.log("behavior updated");
-            state.behaviorDict = data;
-            state.behaviors = data[trial.vidname];
+            state.behaviors = data;
             state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
-            drawActogram();
+            state.behaviorLoaded = true;
+            if (state.videoLoaded) {
+                drawActogram(state.videos[0].duration);
+            }
         });
 }
 
@@ -574,7 +555,7 @@ function drawActogram() {
 
 function drawBehavior(behaviorCanvas, color) {
 
-    var nFrames = 600;
+    var nFrames = state.videos[0].duration * fps;
     var ctx = behaviorCanvas.getContext("2d");
     behaviorCanvas, ctx = updateCanvas(behaviorCanvas, ctx);
 
