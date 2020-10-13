@@ -530,6 +530,9 @@ function drawActogram() {
 
     actogram.innerHTML = '';
     console.log(state.behaviors);
+    state.behaviorCanvases = {};
+    state.bouts = {}
+    state.selectedBehavior = undefined;
 
     for (var i in state.uniqueTrialBehaviors) {
 
@@ -548,26 +551,75 @@ function drawActogram() {
         var behaviorCanvas = document.createElement('canvas');
         behaviorCanvas.id = state.uniqueTrialBehaviors[i];
         behaviorCanvas.className = 'behaviorCanvas';
-        drawBehavior(behaviorCanvas, colors2[i%state.uniqueTrialBehaviors.length]);
+        state.behaviorCanvases[behaviorCanvas.id] = behaviorCanvas;
+        drawBehavior(behaviorCanvas.id, colors2[i%state.uniqueTrialBehaviors.length]);
         behaviorContainer.appendChild(behaviorCanvas);
     }
-}
-
-function drawBehavior(behaviorCanvas, color) {
 
     var nFrames = state.videos[0].duration * fps;
-    var ctx = behaviorCanvas.getContext("2d");
-    behaviorCanvas, ctx = updateCanvas(behaviorCanvas, ctx);
 
-    behaviorCanvas.style.border ='1px solid ' + color;
+    document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
+        var behavior = canvas.id;
+        var ctx = state.behaviorCanvases[behavior].getContext("2d");
+        state.behaviorCanvases[behavior].addEventListener('click', (e) => {
+            var rect = state.behaviorCanvases[behavior].getBoundingClientRect();
+            var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+            var ix = 0;
+            state.bouts[behavior].forEach(bout => {
+                state.bouts[behavior][ix].right = (rect.width-2) * (bout.end/nFrames);
+                state.bouts[behavior][ix].left = (rect.width-2) * (bout.start/nFrames);
+                if (isSelected(point, bout)) {
+                    if (state.selectedBehavior) { 
+                        drawBehavior(state.selectedBehavior, state.bouts[state.selectedBehavior][0].color);
+                    }
+                    state.selectedBehavior = behavior;
+                    bout.selected = true;
+                    ctx.fillStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = bout.color;
+                    ctx.strokeRect(bout.x, bout.y, bout.width, bout.height);
+                } else {
+                    bout.selected = false;
+                    ctx.fillStyle = bout.color;
+                }
+                ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
+                ix += 1;
+            });
+        });
+    });
+}
+
+function isSelected(point, bout) {
+    return (point.x > bout.left && point.x < bout.right)
+}
+
+function drawBehavior(behavior, color) {
+
+    var nFrames = state.videos[0].duration * fps;
+    var ctx = state.behaviorCanvases[behavior].getContext("2d");
+    state.behaviorCanvases[behavior], ctx = updateCanvas(state.behaviorCanvases[behavior], ctx);
+    state.behaviorCanvases[behavior].style.border ='1px solid ' + color;
+
+    state.bouts[behavior] = [];
     for (var i in state.behaviors) {
-        if (state.behaviors[i]['behavior'] == behaviorCanvas.id) {
-            var start = state.behaviors[i]['start'];
-            var end = state.behaviors[i]['end'];
-            ctx.fillStyle = color;
-            ctx.fillRect(Math.round(behaviorCanvas.width*(start/nFrames)), 0, Math.round(behaviorCanvas.width*((end-start)/nFrames)), behaviorCanvas.height);
+        if (state.behaviors[i]['behavior'] == behavior) {
+            bout = {
+            start: state.behaviors[i]['start'],
+            end: state.behaviors[i]['end'],
+            x: state.behaviorCanvases[behavior].width*(state.behaviors[i]['start']/nFrames),
+            y: 0,
+            width: state.behaviorCanvases[behavior].width*((state.behaviors[i]['end']-state.behaviors[i]['start'])/nFrames),
+            height: state.behaviorCanvases[behavior].height,
+            color: color, 
+            selected: false};
+            state.bouts[behavior].push(bout);
         }
-    }    
+    }   
+
+    state.bouts[behavior].forEach(bout => {
+        ctx.fillStyle = bout.color;
+        ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
+    });
 }
 
 function updateCanvas(behaviorCanvas, ctx) {

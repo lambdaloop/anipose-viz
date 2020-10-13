@@ -108,6 +108,7 @@ p {
     border-radius:2px;
     cursor: default;
     box-sizing: border-box;
+    padding: 0px;
 }
 video {
     height: 200px;
