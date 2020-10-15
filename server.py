@@ -118,7 +118,7 @@ def get_unique_behaviors(session_path):
 	with open(path) as json_file:
 		behaviors = json.load(json_file)
 
-	session_behaviors = []
+	session_behaviors = set()
 	trial_behaviors = {}
 	folders = list(behaviors.keys())
 	for folder in folders: 
@@ -130,10 +130,10 @@ def get_unique_behaviors(session_path):
 			for bout in bouts: 
 				behavior = bout['behavior']
 				unique_behaviors[behavior] = True
-				session_behaviors.append(behavior) 
+				session_behaviors.add(behavior) 
 			trial_behaviors[rel_path] = unique_behaviors
 
-	session_behaviors = list(set(session_behaviors))
+	session_behaviors = list(session_behaviors)
 	return session_behaviors, trial_behaviors 
 
 def load_2d_projections(session_path, fname):
