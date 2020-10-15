@@ -313,7 +313,8 @@ function filterTrials() {
     for (var j in state.trials) {
         var trial = state.trials[j]
         var rel_path = trial.session + '/' + trial.folder + '/' + trial.vidname;
-        if (state.possible.trialBehaviors[rel_path] !== undefined && state.possible.trialBehaviors[rel_path][state.filterBehavior]) {
+        if (state.filterBehavior == "" ||
+            (state.possible.trialBehaviors[rel_path] !== undefined && state.possible.trialBehaviors[rel_path][state.filterBehavior])) {
             var text = trial.vidname + " -- " + trial.folder;
             var key = j + "";
             ixs.push(j)
@@ -342,7 +343,7 @@ function updateSession(session, state_url) {
             for (var i in data.sessionBehaviors.sort()) {
                 behaviorList.append(new Option(data.sessionBehaviors[i], data.sessionBehaviors[i]));
             }
-            behaviorList.val(state.filterBehavior);
+            behaviorList.val("");
 
             var ix = 0;
             $('#selectVideo').empty();
