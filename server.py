@@ -121,6 +121,9 @@ def get_unique_behaviors(session_path):
 
     session = os.path.basename(session_path)
     path = safe_join(session_path, 'behaviors.json')
+    if not os.path.exists(path):
+        return [], {}
+
     with open(path) as json_file:
         behaviors = json.load(json_file)
 
