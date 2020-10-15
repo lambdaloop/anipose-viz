@@ -21,6 +21,14 @@ var colors = [
     '#17becf'
 ]
 
+var colors2 = [
+    '#E27D60',
+    '#41B3A3',
+    '#E8A87C',
+    '#C38D9E',
+    '#85DCB'
+]
+
 var keypoints =  [
     [-0.005771587567940273, -0.0007108741837451582, 0.009674983999074628],
     [0.024857184080593345, -0.15178868577443394, -0.1643735682604568],
@@ -65,11 +73,8 @@ window.addEventListener('DOMContentLoaded', function(){
     // load the 3D engine
     var engine = new BABYLON.Engine(canvas, true);
 
-
     // createScene function that creates and return the scene
     var createScene = function() {
-
-
 
         // Create the scene space
         var scene = new BABYLON.Scene(engine);
@@ -149,6 +154,7 @@ window.addEventListener('DOMContentLoaded', function(){
                 var vec = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
                 if(j != 0) {
                     var path = [prev, vec];
+                    // draw limbs
                     var tube = BABYLON.MeshBuilder.CreateTube(
                         "tube",
                         {path: path, radius: 0.05,
@@ -177,13 +183,21 @@ window.addEventListener('DOMContentLoaded', function(){
 
     // call the createScene function
     var scene = createScene();
-
     var divFps = document.getElementById("fps");
+
+
+    state.filterBehavior = '';
+    var selectBehavior = document.getElementById("selectBehavior");
+    var actogram = document.getElementById("actogram");
+    var toggle2d = document.getElementById('toggle2d');
+    toggle2d.addEventListener(
+        "click", function() { toggle2D(); },
+        false);
 
     // run the render loop
     engine.runRenderLoop(function(){
         scene.render();
-        divFps.innerHTML = engine.getFps().toFixed() + " fps";
+        divFps.innerHTML = engine.getFps().toFixed() + " fps"; 
     });
 
     // the canvas/window resize event handler
@@ -251,18 +265,26 @@ window.addEventListener('DOMContentLoaded', function(){
         matcher: matcher
     });
 
+    $('#selectBehavior').select2({
+        matcher: matcher
+    });
+
     $('#selectSession').on('select2:select', function(e) {
         var d = $('#selectSession').select2('data');
         var session = d[0].id;
         updateSession(session);
     });
 
-
-
     $('#selectVideo').on('select2:select', function (e) {
         var d = $('#selectVideo').select2('data');
         var trial = state.trials[d[0].id];
-        updateTrial(trial)
+        updateTrial(trial);
+    });
+
+    $('#selectBehavior').on('select2:select', function (e) {
+        var d = $('#selectBehavior').select2('data');
+        state.filterBehavior = d[0].id;
+        filterTrials();
     });
 
     updateSpeedText();
@@ -282,21 +304,53 @@ function matcher(params, data) {
     return data;
 }
 
+function filterTrials() {
+
+    console.log(state.trials)
+    var ixs = [];
+    $('#selectVideo').empty();
+    var filteredTrials = $("#selectVideo");
+    for (var j in state.trials) {
+        var trial = state.trials[j]
+        var rel_path = trial.session + '/' + trial.folder + '/' + trial.vidname;
+        if (state.possible.trialBehaviors[rel_path] !== undefined && state.possible.trialBehaviors[rel_path][state.filterBehavior]) {
+            var text = trial.vidname + " -- " + trial.folder;
+            var key = j + "";
+            ixs.push(j)
+            filteredTrials.append(new Option(text, key))
+        }
+    }
+    updateTrial(state.trials[ixs[0]]);
+}
+
 function updateSession(session, state_url) {
+
+    document.getElementById('actogram').innerHTML = '';
+    state.behaviorList = undefined
+    state.trials = undefined;
+    state.possible = undefined;
     fetch('/get-trials/' + session)
         .then(response => response.json())
         .then(data => {
             state.possible = data;
-
+            state.session = data.session;
             state.trials = [];
-            var ix = 0;
 
+            $('#selectBehavior').empty();
+            var behaviorList = $("#selectBehavior");
+            behaviorList.append(new Option('', ''));
+            for (var i in data.sessionBehaviors.sort()) {
+                behaviorList.append(new Option(data.sessionBehaviors[i], data.sessionBehaviors[i]));
+            }
+            behaviorList.val(state.filterBehavior);
+
+            var ix = 0;
             $('#selectVideo').empty();
             var list = $("#selectVideo");
             var vidname_folder_ix = {};
             for(var folder_num=0; folder_num < data.folders.length; folder_num++) {
                 console.log(folder_num);
-                var folder = data.folders[folder_num];
+                var folder = data.folders[folder_num]; 
                 for(var file_num=0; file_num < folder.files.length; file_num++) {
                     var file = folder.files[file_num];
                     file.session = data.session;
@@ -306,7 +360,7 @@ function updateSession(session, state_url) {
                     vidname_folder_ix[text] = key;
                     state.trials[key] = file;
                     list.append(new Option(text, key));
-                    ix += 1;
+                    ix++;
                 }
             }
 
@@ -324,23 +378,24 @@ function updateSession(session, state_url) {
 
         });
 
-
 }
 
 function updateTrial(trial) {
     console.log(trial);
     var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
+    console.log(url_suffix)
     window.location.hash = "#" + url_suffix;
 
     state.camnames = trial.camnames;
 
     playing = false;
+    hide2d = false;
     updateSpeedText();
     updatePlayPauseButton();
+    updateToggle2DButton();
 
     var url;
     url = '/pose3d/' + url_suffix;
-    state.data = undefined;
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -363,6 +418,8 @@ function updateTrial(trial) {
     state.videos = vidlist.querySelectorAll("video");
     state.canvases = vidlist.querySelectorAll("canvas");
     state.containers = vidlist.querySelectorAll(".container");
+    state.videoLoaded = false;
+    state.behaviorLoaded = false;
 
     for(var i=0; i<state.videos.length; i++) {
         var video = state.videos[i];
@@ -383,7 +440,7 @@ function updateTrial(trial) {
             console.log(width, height);
 
             var canvas = state.canvases[i];
-            var ctx = canvas.getContext("2d");;
+            var ctx = canvas.getContext("2d");
             var container = state.containers[i];
 
             ctx.canvas.width = width;
@@ -394,13 +451,31 @@ function updateTrial(trial) {
 
             if(i == 0) {
                 updateProgressBar();
+                state.videoLoaded = true;            
+                if (state.behaviorLoaded) {
+                    drawActogram();
+                }
             }
+
         }, false);
     }
 
     state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
-
-
+    
+    url = '/behavior/' + url_suffix;
+    state.behaviors = undefined;
+    state.uniqueTrialBehaviors = undefined;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log("behavior updated");
+            state.behaviors = data;
+            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+            state.behaviorLoaded = true;
+            if (state.videoLoaded) {
+                drawActogram();
+            }
+        });
 }
 
 var video_speed = 0.2;
@@ -410,6 +485,7 @@ var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
 var playing = false;
+var display2d = true;
 var prev_num = 0;
 
 function drawFrame(force) {
@@ -439,6 +515,165 @@ function drawFrame(force) {
     }, 0);
     setTimeout(drawFrame, 1000.0/fps);
     // window.requestAnimationFrame(drawFrame);
+}
+
+function getUniqueTrialBehaviors() {
+    var uniqueTrialBehaviors = new Set();
+    for (var i in state.behaviors) {
+        uniqueTrialBehaviors.add(state.behaviors[i]['behavior']);
+    }
+    var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+    return uniqueTrialBehaviors
+}
+
+function drawActogram() {
+
+    actogram.innerHTML = '';
+    console.log(state.behaviors);
+    state.behaviorCanvases = {};
+    state.bouts = {};
+    state.selectedBehavior = undefined;
+    state.selectedBout = undefined;
+
+    for (var i in state.uniqueTrialBehaviors) {
+
+        var behaviorContainer = document.createElement('div');
+        behaviorContainer.id = "behaviorContainer";
+        behaviorContainer.style.height = '32px';
+        actogram.appendChild(behaviorContainer);
+
+        var behaviorName = document.createElement('input');
+        behaviorName.className = "behaviorName";
+        behaviorName.readOnly = true;
+        behaviorName.value = state.uniqueTrialBehaviors[i];
+        behaviorName.style.border = '1px solid ' + colors2[i%state.uniqueTrialBehaviors.length];
+        behaviorContainer.appendChild(behaviorName);
+
+        var behaviorCanvas = document.createElement('canvas');
+        behaviorCanvas.id = state.uniqueTrialBehaviors[i];
+        behaviorCanvas.className = 'behaviorCanvas';
+        state.behaviorCanvases[behaviorCanvas.id] = behaviorCanvas;
+        drawBehavior(behaviorCanvas.id, colors2[i%state.uniqueTrialBehaviors.length]);
+        behaviorContainer.appendChild(behaviorCanvas);
+    }
+
+    var nFrames = state.videos[0].duration * fps;
+    document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
+        var behavior = canvas.id;
+        var ctx = state.behaviorCanvases[behavior].getContext("2d");
+
+        state.behaviorCanvases[behavior].addEventListener('click', (e) => {
+            var rect = state.behaviorCanvases[behavior].getBoundingClientRect();
+            var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+            Object.keys(state.bouts[behavior]).forEach(function(key) {
+                var bout = state.bouts[behavior][key];
+                state.bouts[behavior][key].right = (rect.width-2) * (bout.end/nFrames);
+                state.bouts[behavior][key].left = (rect.width-2) * (bout.start/nFrames);
+                if (isSelected(point, bout)) {
+                    if (state.selectedBehavior && state.selectedBout) {
+                        drawBehavior(state.selectedBehavior, state.bouts[state.selectedBehavior][state.selectedBout].color);
+                    }
+                    state.selectedBehavior = behavior;
+                    state.selectedBout = key;
+                    selectBout(ctx);
+                } else {
+                    state.bouts[behavior][key].selected = false;
+                    ctx.fillStyle = bout.color;
+                    ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
+                }
+            });
+        }, false);
+
+        state.behaviorCanvases[behavior].addEventListener('mousemove', (e) => {
+            Object.keys(state.bouts[behavior]).forEach(function(key) {
+                var bout = state.bouts[behavior][key];
+                var rect = state.behaviorCanvases[behavior].getBoundingClientRect();
+                var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+                var err = 5;
+                state.bouts[behavior][key].right = (rect.width-2) * (bout.end/nFrames);
+                state.bouts[behavior][key].left = (rect.width-2) * (bout.start/nFrames);
+                if (bout.selected) {
+                    if ((point.x >= (bout.left - err) && point.x <= (bout.left + err) || (point.x >= (bout.right - err) && point.x <= (bout.right + err)))) {
+                        state.behaviorCanvases[behavior].style.cursor = 'w-resize';
+                    } else {
+                        state.behaviorCanvases[behavior].style.cursor = 'auto';
+                    }
+                }
+            });
+        }, false);
+    });
+}
+
+function selectBout(ctx) {
+
+    var bout = state.bouts[state.selectedBehavior][state.selectedBout];
+    var nFrames = state.videos[0].duration * fps;
+    var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior]
+    state.bouts[state.selectedBehavior][state.selectedBout].selected = true;
+    ctx.fillStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = bout.color;
+    ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
+    ctx.strokeRect(bout.x, bout.y, bout.width, bout.height);
+}
+
+function isSelected(point, bout) {
+    return (point.x > bout.left && point.x < bout.right);
+}
+
+function drawBehavior(behavior, color) {
+
+    var nFrames = state.videos[0].duration * fps;
+    var ctx = state.behaviorCanvases[behavior].getContext("2d");
+    state.behaviorCanvases[behavior], ctx = updateCanvas(state.behaviorCanvases[behavior], ctx);
+    state.behaviorCanvases[behavior].style.border ='1px solid ' + color;
+
+    bouts = {};
+    for (var i in state.behaviors) {
+        if (state.behaviors[i]['behavior'] == behavior) {
+            bout = {
+            id: state.behaviors[i]['bout_id'],
+            start: state.behaviors[i]['start'],
+            end: state.behaviors[i]['end'],
+            x: state.behaviorCanvases[behavior].width*(state.behaviors[i]['start']/nFrames),
+            y: 0,
+            width: state.behaviorCanvases[behavior].width*((state.behaviors[i]['end']-state.behaviors[i]['start'])/nFrames),
+            height: state.behaviorCanvases[behavior].height,
+            color: color, 
+            selected: false};
+            bouts[bout.id] = bout;
+        }
+    }   
+    state.bouts[behavior] = bouts;
+
+    Object.keys(state.bouts[behavior]).forEach(function(key) {
+        bout = state.bouts[behavior][key];
+        ctx.fillStyle = bout.color;
+        ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
+    });
+}
+
+function updateCanvas(behaviorCanvas, ctx) {
+
+    ctx.translate(0.5, 0.5);
+    var sizeWidth = 80 * window.innerWidth / 100;
+    var sizeHeight = 100 * window.innerHeight / 100 || 766; 
+
+    behaviorCanvas.width = sizeWidth;
+    behaviorCanvas.height = sizeHeight;
+    behaviorCanvas.style.width = sizeWidth;
+    behaviorCanvas.style.height = sizeHeight;
+
+    return behaviorCanvas, ctx
+}
+
+function generateBoutId(length) {
+    var id = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-';
+    for (var i = 0; i < length; i++ ) {
+        id += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+   return id;
 }
 
 function updateProgressBar() {
@@ -518,6 +753,25 @@ function updatePlayPauseButton() {
     }
 }
 
+function toggle2D() {
+    if (!display2d) {
+        display2d = true;
+    } else {
+        display2d = false;
+    }
+    draw2D(framenum);
+    updateToggle2DButton();
+}
+
+function updateToggle2DButton() {
+    var button = document.getElementById("toggle2d")
+    if(display2d) {
+        button.innerHTML = "hide 2d";
+    } else {
+        button.innerHTML = "display 2d";
+    }
+}
+
 function slowdownVideo() {
     slowdown = slowdown / Math.sqrt(2);
     if(playing) { play(); }
@@ -581,6 +835,8 @@ function updateKeypoints(kps) {
 }
 
 function drawPath(ctx, path, color) {
+    if(!display2d) return; 
+
     ctx.beginPath();
     ctx.lineWidth = 2;
     ctx.strokeStyle = color;
@@ -596,6 +852,8 @@ function drawPath(ctx, path, color) {
 }
 
 function drawPoint(ctx, x, y, color) {
+    if(!display2d) return; 
+
     ctx.beginPath();
     ctx.arc(x, y, 2, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
