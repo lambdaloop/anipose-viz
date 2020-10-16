@@ -125,7 +125,10 @@ def get_unique_behaviors(session_path):
         return [], {}
 
     with open(path) as json_file:
-        behaviors = json.load(json_file)
+        behavior_dict = json.load(json_file)
+
+    all_bouts = behavior_dict['bouts']
+    behaviors = behavior_dict['byfile']
 
     session_behaviors = set()
     trial_behaviors = {}
@@ -135,8 +138,9 @@ def get_unique_behaviors(session_path):
         for file in filenames:
             unique_behaviors = {}
             rel_path = safe_join(session, folder, file)
-            bouts = behaviors[folder][file]
-            for bout in bouts:
+            bids = behaviors[folder][file]
+            for bid in bids:
+                bout = all_bouts[bid]
                 behavior = bout['behavior']
                 unique_behaviors[behavior] = True
                 session_behaviors.add(behavior)
@@ -256,12 +260,21 @@ def get_2d_proj(session, folders, filename):
 @app.route('/behavior/<session>/<folders>/<filename>')
 def get_behaviors(session, folders, filename):
 
-    folders = folders.split('|')
     session_path = safe_join(prefix, session)
     path = safe_join(session_path, 'behaviors.json')
+    if not os.path.exists(path):
+        return jsonify([])
+    
     with open(path) as json_file:
         behavior_dict = json.load(json_file)
-    behaviors = behavior_dict[folders[0]][filename]
+
+    all_bouts = behavior_dict['bouts']
+    bids = behavior_dict['byfile'].get(folders, {}).get(filename, [])
+
+    behaviors = []
+    for bid in bids:
+        behaviors.append(all_bouts[bid])
+
     return jsonify(behaviors)
 
 @app.route('/video/<session>/<folders>/<filename>')
