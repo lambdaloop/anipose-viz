@@ -26,7 +26,7 @@ var colors2 = [
     '#41B3A3',
     '#E8A87C',
     '#C38D9E',
-    '#85DCB'
+    '#85DCBE'
 ]
 
 var keypoints =  [
@@ -543,18 +543,20 @@ function drawActogram() {
         behaviorContainer.style.height = '32px';
         actogram.appendChild(behaviorContainer);
 
+        var color = colors2[i%colors2.length];
+
         var behaviorName = document.createElement('input');
         behaviorName.className = "behaviorName";
         behaviorName.readOnly = true;
         behaviorName.value = state.uniqueTrialBehaviors[i];
-        behaviorName.style.border = '1px solid ' + colors2[i%state.uniqueTrialBehaviors.length];
+        behaviorName.style.border = '1px solid ' + color;
         behaviorContainer.appendChild(behaviorName);
 
         var behaviorCanvas = document.createElement('canvas');
         behaviorCanvas.id = state.uniqueTrialBehaviors[i];
         behaviorCanvas.className = 'behaviorCanvas';
         state.behaviorCanvases[behaviorCanvas.id] = behaviorCanvas;
-        drawBehavior(behaviorCanvas.id, colors2[i%state.uniqueTrialBehaviors.length]);
+        drawBehavior(behaviorCanvas.id, color);
         behaviorContainer.appendChild(behaviorCanvas);
     }
 
