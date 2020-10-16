@@ -125,10 +125,7 @@ def get_unique_behaviors(session_path):
         return [], {}
 
     with open(path) as json_file:
-        behavior_dict = json.load(json_file)
-
-    all_bouts = behavior_dict['bouts']
-    behaviors = behavior_dict['byfile']
+        behaviors = json.load(json_file)
 
     session_behaviors = set()
     trial_behaviors = {}
@@ -138,9 +135,8 @@ def get_unique_behaviors(session_path):
         for file in filenames:
             unique_behaviors = {}
             rel_path = safe_join(session, folder, file)
-            bids = behaviors[folder][file]
-            for bid in bids:
-                bout = all_bouts[bid]
+            bdict = behaviors[folder][file]
+            for bid, bout in bdict.items():
                 behavior = bout['behavior']
                 unique_behaviors[behavior] = True
                 session_behaviors.add(behavior)
@@ -268,12 +264,11 @@ def get_behaviors(session, folders, filename):
     with open(path) as json_file:
         behavior_dict = json.load(json_file)
 
-    all_bouts = behavior_dict['bouts']
-    bids = behavior_dict['byfile'].get(folders, {}).get(filename, [])
+    bid_dict = behavior_dict.get(folders, {}).get(filename, {})
 
     behaviors = []
-    for bid in bids:
-        behaviors.append(all_bouts[bid])
+    for bid, b in bid_dict.items():
+        behaviors.append(b)
 
     return jsonify(behaviors)
 
