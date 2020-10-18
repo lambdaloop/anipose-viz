@@ -28,8 +28,8 @@ import json
 ## config.toml
 
 # prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-prefix = '/media/turritopsis/pierre/gdrive/viz'
-# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
+# prefix = '/media/turritopsis/pierre/gdrive/viz'
+prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
 
@@ -136,8 +136,8 @@ def get_unique_behaviors(session_path):
             unique_behaviors = {}
             rel_path = safe_join(session, folder, file)
             bouts = behaviors[folder][file]
-            for bout in bouts:
-                behavior = bout['behavior']
+            for key in list(bouts.keys()):
+                behavior = bouts[key]['behavior']
                 unique_behaviors[behavior] = True
                 session_behaviors.add(behavior)
             trial_behaviors[rel_path] = unique_behaviors
@@ -321,4 +321,5 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
-    app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
+    # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
