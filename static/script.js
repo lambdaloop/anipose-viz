@@ -535,6 +535,7 @@ function drawActogram() {
     state.bouts = {};
     state.selectedBehavior = undefined;
     state.selectedBout = undefined;
+    state.selectedFrameOffset = undefined;
     state.expectResize = -1;
     state.isResizeDrag = false;
     state.isDrag = false;
@@ -579,6 +580,7 @@ function drawActogram() {
                     }
                     state.selectedBehavior = behavior;
                     state.selectedBout = key;
+                    state.selectedFrameOffset = Math.floor((point.x / (rect.width - 2)) * nFrames) - state.bouts[behavior][key].start;
                     selectBout(ctx);
                 } else {
                     state.bouts[behavior][key].selected = false;
@@ -612,45 +614,67 @@ function drawActogram() {
                 //    state.behaviorCanvases[behavior].style.cursor = 'auto';
                 }
 
-
                 if (state.isResizeDrag && bout.selected) {
                     var oldx = state.bouts[behavior][key].x;
+                    var start = state.behaviors[bout.id].start;
+                    var end = state.behaviors[bout.id].end;
+                    var minFrames = 10;
                     if (state.expectResize === 0) {
-                        state.behaviors[bout.id].start = Math.floor((point.x / (rect.width - 2)) * nFrames);
-                        updateBehaviorState(behavior, bout.color) ;
+                        start = Math.floor((point.x / (rect.width - 2)) * nFrames);
+                        if (start >= end) {
+                            start = Math.max(0, end - minFrames); 
+                        }
                     } else if (state.expectResize === 1) {
-                        state.behaviors[bout.id].end = Math.floor((point.x / (rect.width - 2)) * nFrames);
-                        updateBehaviorState(behavior, bout.color);
+                        end = Math.floor((point.x / (rect.width - 2)) * nFrames);
+                        if (end <= start){
+                            end = Math.min(start + minFrames, nFrames);
+                        }
                     }
+                    state.behaviors[bout.id].start = start; 
+                    state.behaviors[bout.id].end = end;
+                    updateBehaviorState(behavior, bout.color, rect);
                 }
 
                 if (state.isDrag && bout.selected) {
-                    // state.bouts[behavior][key].x = point.x;
-                    var oldStart = state.behaviors[bout.id].start; 
-                    state.behaviors[bout.id].start = Math.floor((point.x / (rect.width - 2)) * nFrames); 
-                    state.behaviors[bout.id].end = Math.floor(state.behaviors[bout.id].start + (state.behaviors[bout.id].end - oldStart)) 
-                    updateBehaviorState(behavior, bout.color); 
+                    var oldStart = state.behaviors[bout.id].start;
+                    var start = Math.floor((point.x / (rect.width - 2)) * nFrames) - state.selectedFrameOffset;
+                    if (start < 0) {
+                        start = 0;
+                    }
+                    var end = Math.floor(start + (state.behaviors[bout.id].end - oldStart))
+                    if (end > nFrames) {
+                        end = nFrames;
+                        start = nFrames - (state.behaviors[bout.id].end - oldStart);
+                    }
+                    state.behaviors[bout.id].start = start;
+                    state.behaviors[bout.id].end = end;
+                    updateBehaviorState(behavior, bout.color, rect);
                 }
             });
         }, false);
 
         state.behaviorCanvases[behavior].addEventListener('mousedown', (e) => {
-            if (state.expectResize !== -1) {
-                state.isResizeDrag = true;
-            } else if (state.selectedBout) {
-                state.isDrag = true;
-            }
+            whenMouseDown();
         });
 
         state.behaviorCanvases[behavior].addEventListener('mouseup', (e) => {
-            state.expectResize = -1;
-            state.isResizeDrag = false;
-            state.isDrag = false;
-            // state.selectedBout = undefined;
-            // state.selectedBehavior = undefined;
-            // state.behaviorCanvases[behavior].style.cursor = 'auto';
+            whenMouseUp();
         });
     });
+}
+
+function whenMouseDown() {
+    if (state.expectResize !== -1) {
+        state.isResizeDrag = true;
+    } else if (state.selectedBout) {
+        state.isDrag = true;
+    }
+}
+
+function whenMouseUp(behavior) {
+    state.expectResize = -1;
+    state.isResizeDrag = false;
+    state.isDrag = false;
 }
 
 function selectBout(ctx) {
@@ -670,9 +694,9 @@ function isSelected(point, bout) {
     return (point.x > bout.left && point.x < bout.right);
 }
 
-function updateBehaviorState(behavior, color) {
+function updateBehaviorState(behavior, color, rect) {
     var nFrames = state.videos[0].duration * fps;
-    var id = state.selectedBout
+    var id = state.selectedBout;
     state.bouts[behavior][state.selectedBout] = {
         id: state.behaviors[id]['bout_id'],
         start: state.behaviors[id]['start'],
@@ -681,22 +705,24 @@ function updateBehaviorState(behavior, color) {
         y: 0,
         width: state.behaviorCanvases[behavior].width*((state.behaviors[id]['end']-state.behaviors[id]['start'])/nFrames),
         height: state.behaviorCanvases[behavior].height,
+        right: (rect.width-2) * (bout.end/nFrames),
+        left: (rect.width-2) * (bout.start/nFrames),
         color: color, 
         selected: true
     };
-    drawBehavior(behavior, color);
-}
-
-function drawBehavior(behavior, color) {
 
     var ctx = state.behaviorCanvases[behavior].getContext("2d");
     state.behaviorCanvases[behavior].style.border ='1px solid ' + color;
-    ctx.clearRect(0, 0, state.behaviorCanvases[behavior].width, state.behaviorCanvases[behavior].height)    
-    
+    ctx.clearRect(0, 0, state.behaviorCanvases[behavior].width, state.behaviorCanvases[behavior].height);      
+    drawBehavior(behavior, color, ctx);
+}
+
+function drawBehavior(behavior, color, ctx) {
+
     Object.keys(state.bouts[behavior]).forEach(function(key) {
         var bout = state.bouts[behavior][key];
         if (bout.selected) {
-            ctx.fillstyle = 'white';
+            ctx.fillStyle = 'white';
         } else {
             ctx.fillStyle = bout.color;
         }
@@ -728,16 +754,7 @@ function createBehavior(behavior, color) {
         }
     });
     state.bouts[behavior] = bouts;
-
-    Object.keys(state.bouts[behavior]).forEach(function(key) {
-        bout = state.bouts[behavior][key];
-        if (bout.selected) {
-            ctx.fillstyle = 'white';
-        } else {
-            ctx.fillStyle = bout.color;
-        }
-        ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
-    });
+    drawBehavior(behavior, color, ctx); 
 }
 
 function updateCanvas(behaviorCanvas, ctx) {
