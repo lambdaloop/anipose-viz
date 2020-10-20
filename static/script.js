@@ -185,7 +185,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var scene = createScene();
     var divFps = document.getElementById("fps");
 
-
+    state.behaviorChanges = [];
     state.filterBehavior = '';
     var selectBehavior = document.getElementById("selectBehavior");
     var actogram = document.getElementById("actogram");
@@ -507,7 +507,16 @@ function drawFrame(force) {
     // if(Math.abs(ft - framenum) > 5) {
     //     framenum = ft;
     // }
+
     framenum = Math.round(ft+1);
+    var nFrames = state.videos[0].duration * fps
+    if (state.selectedBout) {
+        if (framenum > state.bouts[state.selectedBehavior][state.selectedBout].end) {
+            for (var i = 0; i < state.videos.length; i++) {
+                state.videos[i].currentTime = (state.bouts[state.selectedBehavior][state.selectedBout].start / nFrames) * state.videos[0].duration;
+            }
+        }
+    }
 
     const fix = Math.max(0, Math.min(Math.floor(framenum), state.data.length-1));
     setTimeout(function() {
@@ -576,14 +585,24 @@ function drawActogram() {
                 state.bouts[behavior][key].left = (rect.width-2) * (bout.start/nFrames);
                 if (isSelected(point, bout)) {
                     if (state.selectedBehavior && state.selectedBout) {
-                        createBehavior(state.selectedBehavior, state.bouts[state.selectedBehavior][state.selectedBout].color);
+                        // createBehavior(state.selectedBehavior, state.bouts[state.selectedBehavior][state.selectedBout].color);
+                        for (var i in state.uniqueTrialBehaviors)
+                           createBehavior(state.uniqueTrialBehaviors[i], colors2[i%state.uniqueTrialBehaviors.length]); 
                     }
                     state.selectedBehavior = behavior;
                     state.selectedBout = key;
                     state.selectedFrameOffset = Math.floor((point.x / (rect.width - 2)) * nFrames) - state.bouts[behavior][key].start;
                     selectBout(ctx);
-                } else {
+                } else {                    
                     state.bouts[behavior][key].selected = false;
+                    var sum = 0;
+                    Object.keys(state.bouts[behavior]).forEach(function(key) {
+                        sum += state.bouts[behavior][key].selected;
+                    });
+                    if (sum < 1 && state.selectedBehavior === behavior) {
+                        state.selectedBehavior = undefined;
+                        state.selectedBout = undefined;
+                    }
                     ctx.fillStyle = bout.color;
                     ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
                     state.behaviorCanvases[behavior].style.cursor = 'auto';
@@ -664,14 +683,26 @@ function drawActogram() {
 }
 
 function whenMouseDown() {
+    console.log(state.selectedBout)
     if (state.expectResize !== -1) {
         state.isResizeDrag = true;
     } else if (state.selectedBout) {
         state.isDrag = true;
     }
+
+    // if (state.isResizeDrag || state.isDrag) {
+    //     bout = {
+    //         id: state.selectedBout,
+    //         session: state.session,
+    //         old: state.behaviors[state.selectedBout]
+    //     }
+    //     state.behaviorChanges.push(bout);
+    // }
+    // console.log(state.behaviorChanges);
 }
 
-function whenMouseUp(behavior) {
+function whenMouseUp() {
+    console.log(state.behaviorChanges)
     state.expectResize = -1;
     state.isResizeDrag = false;
     state.isDrag = false;
@@ -682,6 +713,27 @@ function selectBout(ctx) {
     var bout = state.bouts[state.selectedBehavior][state.selectedBout];
     var nFrames = state.videos[0].duration * fps;
     var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior]
+
+    var timeToSet = (bout.start/nFrames)*state.videos[0].duration;
+    for(var i=0; i<state.videos.length; i++) {
+        state.videos[i].currentTime = timeToSet;
+    }
+    drawFrame(true);
+
+    // if (playing) {
+    //     for (var i = 0; i < state.videos.length-1; i++) {
+    //         state.videos[i].addEventListener('timeupdate', function () {
+    //             console.log(state.videos[i].currentTime)
+    //             if (state.videos[i].currentTime >= (bout.end/nFrames)*state.videos[0].duration || 
+    //                 state.videos[i].currentTime < (bout.start/nFrames)*state.videos[0].duration) {
+    //                 state.videos[i].currentTime = (bout.start/nFrames)*state.videos[0].duration;
+    //                 state.videos[i].play();
+    //             }
+    //         }, false);
+    //     }
+    //     setTimeout(drawFrame, 150.0);
+    // }
+
     state.bouts[state.selectedBehavior][state.selectedBout].selected = true;
     ctx.fillStyle = 'white';
     ctx.lineWidth = 2;
@@ -809,19 +861,42 @@ function findPos(obj) {
     return curleft;
 }
 
-
-function play() {
+function playBout() {
     playing = true;
     var t = state.videos[0].currentTime;
     framenum = state.videos[0].currentTime * vid_fps;
     rate_estimate = vid_fps/fps*slowdown;
     for(var i=0; i<state.videos.length; i++) {
         state.videos[i].currentTime = t;
+        console.log(t)
         state.videos[i].playbackRate = slowdown;
         state.videos[i].loop = true;
         state.videos[i].preload = "auto";
         state.videos[i].play();
     }
+    setTimeout(drawFrame, 150.0);
+}
+
+
+function play() {
+    playing = true;
+    var t = state.videos[0].currentTime;
+    var nFrames = state.videos[0].duration * fps;
+    // if (state.selectedBout && state.bouts[state.selectedBehavior][state.selectedBout].selected) {
+    //     if (t > (state.bouts[state.selectedBehavior][state.selectedBout].end / nFrames)*state.videos[0].duration) {
+    //         t = (state.bouts[state.selectedBehavior][state.selectedBout].start / nFrames)*state.videos[0].duration
+    //     }
+    // }
+    framenum = state.videos[0].currentTime * vid_fps;
+    rate_estimate = vid_fps/fps*slowdown;
+    for(var i=0; i<state.videos.length; i++) {        
+        state.videos[i].currentTime = t;
+        state.videos[i].playbackRate = slowdown;
+        state.videos[i].loop = true;
+        state.videos[i].preload = "auto";
+        state.videos[i].play();
+    }
+
     // state.videos[0].play();
     setTimeout(drawFrame, 150.0);
 }
@@ -849,7 +924,7 @@ function togglePlayPause() {
 }
 
 function updatePlayPauseButton() {
-    var button = document.getElementById("play")
+    var button = document.getElementById("play");
     if(playing) {
         button.innerHTML = "pause";
     } else {
