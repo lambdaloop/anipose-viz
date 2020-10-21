@@ -548,6 +548,7 @@ function drawActogram() {
     state.expectResize = -1;
     state.isResizeDrag = false;
     state.isDrag = false;
+    state.modified = false;
 
     for (var i in state.uniqueTrialBehaviors) {
 
@@ -629,8 +630,6 @@ function drawActogram() {
                     } else {
                         state.behaviorCanvases[behavior].style.cursor = 'auto';
                     }
-                // } else {
-                //    state.behaviorCanvases[behavior].style.cursor = 'auto';
                 }
 
                 if (state.isResizeDrag && bout.selected) {
@@ -639,22 +638,27 @@ function drawActogram() {
                     var end = state.behaviors[bout.id].end;
                     var minFrames = 10;
                     if (state.expectResize === 0) {
+                        state.modified = true;
                         start = Math.floor((point.x / (rect.width - 2)) * nFrames);
                         if (start >= end) {
                             start = Math.max(0, end - minFrames); 
                         }
                     } else if (state.expectResize === 1) {
+                        state.modified = true;
                         end = Math.floor((point.x / (rect.width - 2)) * nFrames);
                         if (end <= start){
                             end = Math.min(start + minFrames, nFrames);
                         }
                     }
+                    console.log(state.behaviors[bout.id].start);
                     state.behaviors[bout.id].start = start; 
                     state.behaviors[bout.id].end = end;
+                    // console.log(state.behaviors[bout.id].start)
                     updateBehaviorState(behavior, bout.color, rect);
                 }
 
                 if (state.isDrag && bout.selected) {
+                    state.modified = true;
                     var oldStart = state.behaviors[bout.id].start;
                     var start = Math.floor((point.x / (rect.width - 2)) * nFrames) - state.selectedFrameOffset;
                     if (start < 0) {
@@ -682,27 +686,44 @@ function drawActogram() {
     });
 }
 
+
 function whenMouseDown() {
-    console.log(state.selectedBout)
+
+    // state.currentBout = undefined;
+    // state.old = undefined;
+    state.changes = {};
     if (state.expectResize !== -1) {
         state.isResizeDrag = true;
     } else if (state.selectedBout) {
         state.isDrag = true;
     }
 
-    // if (state.isResizeDrag || state.isDrag) {
-    //     bout = {
-    //         id: state.selectedBout,
-    //         session: state.session,
-    //         old: state.behaviors[state.selectedBout]
-    //     }
-    //     state.behaviorChanges.push(bout);
-    // }
-    // console.log(state.behaviorChanges);
+    if (state.isResizeDrag || state.isDrag) {
+        var currentBout = state.behaviors[state.selectedBout];
+        state.changes.id = currentBout.bout_id;
+        state.changes.old = {start: currentBout.start, end: currentBout.end};
+        // var currentBout = state.behaviors[state.selectedBout];
+        // state.currentBout = currentBout;
+        // state.old = {start: currentBout.start, end: currentBout.end};
+    }
 }
 
 function whenMouseUp() {
-    console.log(state.behaviorChanges)
+
+    if (state.modified && (state.isResizeDrag || state.isDrag)) {
+        // var newBout = state.behaviors[state.currentBout.bout_id];
+        // var changes = {
+        //     bout_id: state.currentBout.bout_id,
+        //     old: state.old,
+        //     new: {start: newBout.start, end: newBout.end}
+        // }
+        // state.behaviorChanges.push(changes);
+        var newBout = state.behaviors[state.changes.id];
+        state.changes.new = {start: newBout.start, end: newBout.end};
+        state.behaviorChanges.push(state.changes);
+        state.modified = false;
+        console.log(state.behaviorChanges);
+    }
     state.expectResize = -1;
     state.isResizeDrag = false;
     state.isDrag = false;
@@ -719,20 +740,6 @@ function selectBout(ctx) {
         state.videos[i].currentTime = timeToSet;
     }
     drawFrame(true);
-
-    // if (playing) {
-    //     for (var i = 0; i < state.videos.length-1; i++) {
-    //         state.videos[i].addEventListener('timeupdate', function () {
-    //             console.log(state.videos[i].currentTime)
-    //             if (state.videos[i].currentTime >= (bout.end/nFrames)*state.videos[0].duration || 
-    //                 state.videos[i].currentTime < (bout.start/nFrames)*state.videos[0].duration) {
-    //                 state.videos[i].currentTime = (bout.start/nFrames)*state.videos[0].duration;
-    //                 state.videos[i].play();
-    //             }
-    //         }, false);
-    //     }
-    //     setTimeout(drawFrame, 150.0);
-    // }
 
     state.bouts[state.selectedBehavior][state.selectedBout].selected = true;
     ctx.fillStyle = 'white';
@@ -861,32 +868,10 @@ function findPos(obj) {
     return curleft;
 }
 
-function playBout() {
-    playing = true;
-    var t = state.videos[0].currentTime;
-    framenum = state.videos[0].currentTime * vid_fps;
-    rate_estimate = vid_fps/fps*slowdown;
-    for(var i=0; i<state.videos.length; i++) {
-        state.videos[i].currentTime = t;
-        console.log(t)
-        state.videos[i].playbackRate = slowdown;
-        state.videos[i].loop = true;
-        state.videos[i].preload = "auto";
-        state.videos[i].play();
-    }
-    setTimeout(drawFrame, 150.0);
-}
-
-
 function play() {
     playing = true;
     var t = state.videos[0].currentTime;
     var nFrames = state.videos[0].duration * fps;
-    // if (state.selectedBout && state.bouts[state.selectedBehavior][state.selectedBout].selected) {
-    //     if (t > (state.bouts[state.selectedBehavior][state.selectedBout].end / nFrames)*state.videos[0].duration) {
-    //         t = (state.bouts[state.selectedBehavior][state.selectedBout].start / nFrames)*state.videos[0].duration
-    //     }
-    // }
     framenum = state.videos[0].currentTime * vid_fps;
     rate_estimate = vid_fps/fps*slowdown;
     for(var i=0; i<state.videos.length; i++) {        
