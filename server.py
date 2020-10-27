@@ -264,6 +264,64 @@ def get_behaviors(session, folders, filename):
     behaviors = behavior_dict[folders[0]][filename]
     return jsonify(behaviors)
 
+def merge_behavior_changes(behavior_changes):
+
+    for j in range(len(behavior_changes)):
+        change = behavior_changes[j]
+
+        if not change['old']: # bout was added  
+            bout = change['new']
+            path = safe_join(prefix, bout['session'], 'behaviors.json')
+            if not os.path.exists(path):
+                return [], {}
+            with open(path, 'r+') as json_file:
+                behavior_dict = json.load(json_file)
+                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+                json_file.seek(0)
+                json.dump(behavior_dict, json_file)
+                json_file.truncate()
+                print('added')
+
+
+        elif not change['new']: # bout was removed 
+            bout = change['old']
+            path = safe_join(prefix, bout['session'], 'behaviors.json')
+            if not os.path.exists(path):
+                return [], {}
+            with open(path, 'r+') as json_file:
+                behavior_dict = json.load(json_file)
+                behavior_dict.pop(behavior_dict[bout['folders']][bout['filename']][bout['bout_id']])
+                json_file.seek(0)
+                json.dump(behavior_dict, json_file)
+                json_file.truncate()
+                print('removed')
+
+        else: # properties of an existing bout were edited
+            bout = change['old']
+            edits = change['new']
+            for key in list(edits.keys()):
+                bout[key] = edits[key]
+            path = safe_join(prefix, bout['session'], 'behaviors.json')
+            if not os.path.exists(path):
+                return [], {}
+            with open(path, 'r+') as json_file:
+                behavior_dict = json.load(json_file)
+                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+                json_file.seek(0)
+                json.dump(behavior_dict, json_file)
+                json_file.truncate()
+                print('edited')
+
+    return 'changes merged'
+
+@app.route('/update-behavior', methods=['POST'])
+def update_behaviors():
+    req_data = request.get_json()
+    behavior_changes = req_data['behaviorChanges']
+    print(behavior_changes)
+    updated_behaviors = merge_behavior_changes(behavior_changes)
+    return updated_behaviors
+
 @app.route('/video/<session>/<folders>/<filename>')
 def get_video(session, folders, filename):
     print(session, folders, filename)

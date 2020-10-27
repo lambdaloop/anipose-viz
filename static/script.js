@@ -562,7 +562,7 @@ function drawActogram() {
 
         var behaviorName = document.createElement('input');
         behaviorName.className = "behaviorName";
-        behaviorName.readOnly = false;
+        behaviorName.readOnly = true;
         behaviorName.value = state.uniqueTrialBehaviors[i];
         behaviorName.style.border = '1px solid ' + colors2[i%state.uniqueTrialBehaviors.length];
         behaviorContainer.appendChild(behaviorName);
@@ -606,7 +606,7 @@ function drawActogram() {
                         state.selectedBehavior = undefined;
                         state.selectedBout = undefined;
                     }
-                    ctx.fillStyle = getBoutColor(bout.id);
+                    ctx.fillStyle = getBoutColor(bout.bout_id);
                     ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
                     state.behaviorCanvases[behavior].style.cursor = 'auto';
                 }
@@ -636,8 +636,8 @@ function drawActogram() {
 
                 if (state.isResizeDrag && bout.selected) {
                     var oldx = state.bouts[behavior][key].x;
-                    var start = state.behaviors[bout.id].start;
-                    var end = state.behaviors[bout.id].end;
+                    var start = state.behaviors[bout.bout_id].start;
+                    var end = state.behaviors[bout.bout_id].end;
                     var minFrames = 10;
                     if (state.expectResize === 0) {
                         state.modified = true;
@@ -652,26 +652,26 @@ function drawActogram() {
                             end = Math.min(start + minFrames, nFrames);
                         }
                     }
-                    console.log(state.behaviors[bout.id].start);
-                    state.behaviors[bout.id].start = start; 
-                    state.behaviors[bout.id].end = end;
+                    console.log(state.behaviors[bout.bout_id].start);
+                    state.behaviors[bout.bout_id].start = start; 
+                    state.behaviors[bout.bout_id].end = end;
                     updateBehaviorState(behavior, bout.color, rect);
                 }
 
                 if (state.isDrag && bout.selected) {
                     state.modified = true;
-                    var oldStart = state.behaviors[bout.id].start;
+                    var oldStart = state.behaviors[bout.bout_id].start;
                     var start = Math.floor((point.x / (rect.width - 2)) * nFrames) - state.selectedFrameOffset;
                     if (start < 0) {
                         start = 0;
                     }
-                    var end = Math.floor(start + (state.behaviors[bout.id].end - oldStart))
+                    var end = Math.floor(start + (state.behaviors[bout.bout_id].end - oldStart))
                     if (end > nFrames) {
                         end = nFrames;
-                        start = nFrames - (state.behaviors[bout.id].end - oldStart);
+                        start = nFrames - (state.behaviors[bout.bout_id].end - oldStart);
                     }
-                    state.behaviors[bout.id].start = start;
-                    state.behaviors[bout.id].end = end;
+                    state.behaviors[bout.bout_id].start = start;
+                    state.behaviors[bout.bout_id].end = end;
                     updateBehaviorState(behavior, bout.color, rect);
                 }
             });
@@ -692,6 +692,44 @@ function drawActogram() {
 
         state.behaviorCanvases[behavior].addEventListener('mouseup', (e) => {
             whenMouseUp();
+        });
+    });
+
+    document.querySelectorAll('.behaviorName').forEach(name => {
+        var oldName = name.value;
+        var newName = '';
+        name.addEventListener('change', (e) => {
+
+            newName = name.value;
+            Object.keys(state.behaviors).forEach(function(id) {
+                console.log(state.behaviors[id]['behavior'])
+                if (state.behaviors[id]['behavior'] === oldName) {
+                    state.behaviors[id]['behavior'] = newName;
+                    console.log(state.behaviors[id]['behavior'])
+                }     
+            });
+            state.bouts[newName] = state.bouts[oldName];
+            delete state.bouts[oldName];
+
+            // need to update state.behaviorChanges (change behavior field)
+            var removedBout = state.behaviors[id];
+            state.changes = {
+                id: id,
+                old: removedBout,
+                new: {}, 
+                modification: 'removed'
+            }
+            state.behaviorChanges.push(state.changes);
+            
+            state.behaviorCanvases[oldName].id = newName;
+            state.behaviorCanvases[newName] = document.getElementById(newName);
+            delete state.behaviorCanvases[oldName];
+            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+            console.log(state.uniqueTrialBehaviors);
+            for (var i in state.uniqueTrialBehaviors) {
+                createBehavior(state.uniqueTrialBehaviors[i], colors2[i%state.uniqueTrialBehaviors.length]); 
+            }
+
         });
     });
 }
@@ -727,8 +765,6 @@ function removeBout(e, behavior) {
 
 function addBout(e, behavior) {
 
-    console.log('hi')
-
     if (state.selectedBout) {
         return;
     }
@@ -744,6 +780,7 @@ function addBout(e, behavior) {
     var newId = generateBoutId(22);
     
     var addedBout = {
+        session: state.trial.session,
         filename: state.trial.vidname,
         folders: state.trial.folder,
         start: start,
@@ -756,7 +793,6 @@ function addBout(e, behavior) {
     state.behaviors[newId] = addedBout;
     state.selectedBehavior = addedBout.behavior;
     state.selectedBout = addedBout.bout_id; 
-    // updateBehaviorState(behavior, state.behaviorCanvases[behavior].style.borderColor, rect);
     for (var i in state.uniqueTrialBehaviors) {
         createBehavior(state.uniqueTrialBehaviors[i], colors2[i%state.uniqueTrialBehaviors.length]); 
     }
@@ -787,7 +823,7 @@ function whenMouseDown() {
         state.changes.id = currentBout.bout_id;
         console.log(currentBout); 
         state.changes.old = {
-            id: currentBout.bout_id, 
+            bout_id: currentBout.bout_id, 
             session: state.session, 
             folders: currentBout.folders, 
             filename:currentBout.filename,
@@ -842,7 +878,7 @@ function updateBehaviorState(behavior, color, rect) {
         var nFrames = state.videos[0].duration * fps;
         var id = state.selectedBout;
         state.bouts[behavior][state.selectedBout] = {
-            id: state.behaviors[id]['bout_id'],
+            bout_id: state.behaviors[id]['bout_id'],
             start: state.behaviors[id]['start'],
             end: state.behaviors[id]['end'],
             x: state.behaviorCanvases[behavior].width*(state.behaviors[id]['start']/nFrames),
@@ -898,7 +934,7 @@ function createBehavior(behavior, color) {
     Object.keys(state.behaviors).forEach(function(id) {
         if (state.behaviors[id]['behavior'] == behavior) {
             bout = {
-            id: state.behaviors[id]['bout_id'],
+            bout_id: state.behaviors[id]['bout_id'],
             start: state.behaviors[id]['start'],
             end: state.behaviors[id]['end'],
             x: state.behaviorCanvases[behavior].width*(state.behaviors[id]['start']/nFrames),
@@ -907,7 +943,7 @@ function createBehavior(behavior, color) {
             height: state.behaviorCanvases[behavior].height,
             color: color, 
             selected: false};
-            bouts[bout.id] = bout;
+            bouts[bout.bout_id] = bout;
         }
     });
     state.bouts[behavior] = bouts;
@@ -1000,6 +1036,24 @@ function pause() {
 function addBehavior() {
     state.uniqueTrialBehaviors.push('default');
     drawActogram();
+}
+
+// send behavior changes to server 
+function pushChanges() {
+
+    var behaviorChanges = state.behaviorChanges;
+
+    fetch('/update-behavior', {
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        body: JSON.stringify({behaviorChanges})
+
+    }).then(function (response) { 
+        return response.text();
+
+    }).then(function (text) {
+        console.log(text);
+    });
 }
 
 function togglePlayPause() {
