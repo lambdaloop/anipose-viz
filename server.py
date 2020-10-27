@@ -262,6 +262,7 @@ def get_behaviors(session, folders, filename):
     with open(path) as json_file:
         behavior_dict = json.load(json_file)
     behaviors = behavior_dict[folders[0]][filename]
+    print(behaviors)
     return jsonify(behaviors)
 
 def merge_behavior_changes(behavior_changes):
