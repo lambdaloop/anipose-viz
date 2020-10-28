@@ -700,6 +700,7 @@ function drawActogram() {
     document.querySelectorAll('.behaviorName').forEach(name => {
         var oldName = name.value;
         var newName = '';
+        // fix by adding a unique canvas id that maps to the current behavior dict(canvasid => behavior)
         name.addEventListener('change', (e) => {
 
             newName = name.value;
@@ -708,20 +709,20 @@ function drawActogram() {
                 if (state.behaviors[id]['behavior'] === oldName) {
                     state.behaviors[id]['behavior'] = newName;
                     console.log(state.behaviors[id]['behavior'])
+
+                    var changedBout = state.behaviors[id];
+                    state.changes = {
+                        id: id,
+                        old: changedBout,
+                        new: {behavior: newName}, 
+                        modification: 'changed behavior'
+                    }
+                // need to update state.behaviorChanges (change behavior field)
+                state.behaviorChanges.push(state.changes);
                 }     
             });
             state.bouts[newName] = state.bouts[oldName];
             delete state.bouts[oldName];
-
-            // need to update state.behaviorChanges (change behavior field)
-            var removedBout = state.behaviors[id];
-            state.changes = {
-                id: id,
-                old: removedBout,
-                new: {}, 
-                modification: 'removed'
-            }
-            state.behaviorChanges.push(state.changes);
             
             state.behaviorCanvases[oldName].id = newName;
             state.behaviorCanvases[newName] = document.getElementById(newName);
@@ -1057,7 +1058,6 @@ function addBehavior() {
     drawActogram();
 }
 
-// send behavior changes to server 
 function pushChanges() {
 
     var behaviorChanges = state.behaviorChanges;
