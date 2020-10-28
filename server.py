@@ -267,51 +267,40 @@ def get_behaviors(session, folders, filename):
 
 def merge_behavior_changes(behavior_changes):
 
-    for j in range(len(behavior_changes)):
-        change = behavior_changes[j]
+    session_changes = defaultdict(list)
+    for b in behavior_changes:
+       session_changes[b['session']].append(b)
 
-        if not change['old']: # bout was added  
-            bout = change['new']
-            path = safe_join(prefix, bout['session'], 'behaviors.json')
-            if not os.path.exists(path):
-                return [], {}
-            with open(path, 'r+') as json_file:
-                behavior_dict = json.load(json_file)
-                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
-                json_file.seek(0)
-                json.dump(behavior_dict, json_file)
-                json_file.truncate()
-                print('added')
+    for session in session_changes.keys():
 
+        changes = session_changes[session]
+        path = safe_join(prefix, session, 'behaviors.json')
+        if not os.path.exists(path):
+            return [], {}
 
-        elif not change['new']: # bout was removed 
-            bout = change['old']
-            path = safe_join(prefix, bout['session'], 'behaviors.json')
-            if not os.path.exists(path):
-                return [], {}
-            with open(path, 'r+') as json_file:
-                behavior_dict = json.load(json_file)
-                behavior_dict.pop(behavior_dict[bout['folders']][bout['filename']][bout['bout_id']])
-                json_file.seek(0)
-                json.dump(behavior_dict, json_file)
-                json_file.truncate()
-                print('removed')
+        with open(path, 'r+') as json_file:
+            behavior_dict = json.load(json_file)
 
-        else: # properties of an existing bout were edited
-            bout = change['old']
-            edits = change['new']
-            for key in list(edits.keys()):
-                bout[key] = edits[key]
-            path = safe_join(prefix, bout['session'], 'behaviors.json')
-            if not os.path.exists(path):
-                return [], {}
-            with open(path, 'r+') as json_file:
-                behavior_dict = json.load(json_file)
-                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
-                json_file.seek(0)
-                json.dump(behavior_dict, json_file)
-                json_file.truncate()
-                print('edited')
+            for change in changes:
+
+                if change['modification'] == 'added':
+                    bout = change['new']
+                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+
+                elif change['modification'] == 'removed': 
+                    bout = change['old']
+                    behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
+
+                else: # properties of an existing bout were edited (resized, translated, behavior name changed)
+                    bout = change['old']
+                    edits = change['new']
+                    for key in list(edits.keys()):
+                        bout[key] = edits[key]
+                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+
+            json_file.seek(0)
+            json.dump(behavior_dict, json_file, indent = 4)
+            json_file.truncate()
 
     return 'changes merged'
 

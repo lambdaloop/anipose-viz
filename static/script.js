@@ -544,6 +544,7 @@ function drawActogram() {
     actogram.innerHTML = '';
     console.log(state.behaviors);
     state.behaviorCanvases = {};
+    state.canvasIds = {}
     state.bouts = {};
     state.selectedBehavior = undefined;
     state.selectedBout = undefined;
@@ -566,6 +567,7 @@ function drawActogram() {
         behaviorName.value = state.uniqueTrialBehaviors[i];
         behaviorName.style.border = '1px solid ' + colors2[i%colors2.length];
         behaviorContainer.appendChild(behaviorName);
+        state.canvasIds[i] = behaviorName;
 
         var behaviorCanvas = document.createElement('canvas');
         behaviorCanvas.id = state.uniqueTrialBehaviors[i];
@@ -574,6 +576,8 @@ function drawActogram() {
         createBehavior(behaviorCanvas.id, colors2[i%colors2.length]);
         behaviorContainer.appendChild(behaviorCanvas);
     }
+
+    console.log(state.canvasIds)
 
     var nFrames = state.videos[0].duration * fps;
     document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
@@ -606,7 +610,7 @@ function drawActogram() {
                         state.selectedBehavior = undefined;
                         state.selectedBout = undefined;
                     }
-                    ctx, color = getBoutColor(ctx, bout)
+                    ctx, color = getBoutColor(ctx, bout);
                     ctx.fillStyle = color;
                     ctx.fillRect(bout.x, bout.y, bout.width, bout.height);
                     state.behaviorCanvases[behavior].style.cursor = 'auto';
@@ -674,6 +678,7 @@ function drawActogram() {
                     }
                     state.behaviors[bout.bout_id].start = start;
                     state.behaviors[bout.bout_id].end = end;
+                    state.behaviors[bout.bout_id].manual = true;
                     updateBehaviorState(behavior, bout.color, rect);
                 }
             });
@@ -713,11 +718,11 @@ function drawActogram() {
                     var changedBout = state.behaviors[id];
                     state.changes = {
                         id: id,
+                        session: state.session,
                         old: changedBout,
                         new: {behavior: newName}, 
                         modification: 'changed behavior'
                     }
-                // need to update state.behaviorChanges (change behavior field)
                 state.behaviorChanges.push(state.changes);
                 }     
             });
@@ -751,6 +756,7 @@ function removeBout(e, behavior) {
             var removedBout = state.behaviors[id];
             state.changes = {
                 id: id,
+                session: state.session,
                 old: removedBout,
                 new: {}, 
                 modification: 'removed'
@@ -803,6 +809,7 @@ function addBout(e, behavior) {
 
     state.changes = {
         id: newId,
+        session: state.session, 
         old: {},
         new: addedBout, 
         modification: 'added'
@@ -824,6 +831,7 @@ function whenMouseDown() {
     if (state.isResizeDrag || state.isDrag) {
         var currentBout = state.behaviors[state.selectedBout];
         state.changes.id = currentBout.bout_id;
+        state.changes.session = state.session;
         console.log(currentBout); 
         state.changes.old = {
             bout_id: currentBout.bout_id, 
@@ -913,22 +921,22 @@ function getBoutColor(ctx, bout) {
     } else if (state.behaviors[bout.bout_id].manual) {
         color = state.behaviorCanvases[behavior].style.borderColor;
     } else {
-        color = 'gray'
-        // var pc = document.createElement('canvas');
-        // pc.width = state.behaviorCanvases[behavior].width/15;
-        // pc.height = state.behaviorCanvases[behavior].height;
-        // var pctx = pc.getContext('2d');
-        // pctx.fillStyle = 'gray';
-        // pctx.fillRect(0, 0, pc.width, pc.height);
-        // pctx.lineWidth = 5;
-        // // pctx.strokeStyle = state.behaviorCanvases[behavior].style.borderColor
-        // pctx.beginPath();
-        // pctx.moveTo(0, 0);
-        // pctx.lineTo(pc.width, pc.height);
-        // pctx.stroke();
-        // ctx.closePath();
-        // color = ctx.createPattern(pc, 'repeat-x');
-        // ctx.fillStyle = color;
+        // color = 'gray'
+        var pc = document.createElement('canvas');
+        pc.width = state.behaviorCanvases[behavior].width/30;
+        pc.height = state.behaviorCanvases[behavior].height;
+        var pctx = pc.getContext('2d');
+        pctx.fillStyle = state.behaviorCanvases[behavior].style.borderColor
+        pctx.fillRect(0, 0, pc.width, pc.height);
+        pctx.lineWidth = pc.width / 3;
+        pctx.strokeStyle = 'black';
+        pctx.beginPath();
+        pctx.moveTo(0, 0);
+        pctx.lineTo(pc.width, pc.height);
+        pctx.stroke();
+        ctx.closePath();
+        color = ctx.createPattern(pc, 'repeat-x');
+        ctx.fillStyle = color;
     }
     return ctx, color;
 }
@@ -1073,6 +1081,8 @@ function pushChanges() {
     }).then(function (text) {
         console.log(text);
     });
+
+    updateTrial(state.trial);
 }
 
 function togglePlayPause() {
