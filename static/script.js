@@ -501,6 +501,14 @@ var playing = false;
 var display2d = true;
 var prev_num = 0;
 
+// $(document).keyup(function(e) {
+//     if (e.keyCode == 87) {
+//         speedupVideo();
+//     } else if (e.keyCode == 89) {
+//         slowdownVideo();
+//     }
+// });
+
 function drawFrame(force) {
     if(!playing && !force) return;
     var ft = state.videos[0].currentTime * vid_fps;
@@ -777,19 +785,31 @@ function expandContractBout(e, behavior) {
 
     Object.keys(state.bouts[behavior]).forEach(function(id) {
         var bout = state.bouts[behavior][id];
+        // console.log(bout)
         var nFrames = state.videos[0].duration * fps;
         var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior];
         var rect = state.behaviorCanvases[behavior].getBoundingClientRect();
+
+        state.changes = {
+                id: id,
+                session: state.session,
+                old: bout,
+                modification: 'edited'
+            }
 
         if (bout.selected && e.shiftKey) {
             switch(e.which) {
                 case 37:
                     state.behaviors[id].start = Math.max(0, state.behaviors[id].start - 1); 
                     updateBehaviorState(behavior, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].start, manual: true};
+                    state.behaviorChanges.push(state.changes);
                     break;
                 case 39:
                     state.behaviors[id].start = Math.min(state.behaviors[id].start + 1, nFrames); 
                     updateBehaviorState(behavior, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].start, manual: true};
+                    state.behaviorChanges.push(state.changes);
                     break;
                 default:
                     break;
@@ -802,10 +822,14 @@ function expandContractBout(e, behavior) {
                 case 37:
                     state.behaviors[id].end = Math.max(0, state.behaviors[id].end - 1); 
                     updateBehaviorState(behavior, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].end, manual: true};
+                    state.behaviorChanges.push(state.changes);
                     break;
                 case 39:
                     state.behaviors[id].end = Math.min(state.behaviors[id].end + 1, nFrames); 
                     updateBehaviorState(behavior, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].end, manual: true};
+                    state.behaviorChanges.push(state.changes);
                     break;
                 default:
                     break;
