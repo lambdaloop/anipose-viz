@@ -209,6 +209,15 @@ window.addEventListener('DOMContentLoaded', function(){
     progressBar.addEventListener(
         "mousedown", function(e) { setPlayPosition(e.pageX); },
         false);
+
+    $(document).keyup(function(e) {
+        if (e.shiftKey && e.keyCode==187) {
+            speedupVideo();
+        } else if (e.shiftKey && e.keyCode==189) {
+            slowdownVideo();
+        }
+    });
+
     // state.trial = {
     //     session: "5.16.19",
     //     folder: "Fly 2_0",
@@ -530,6 +539,24 @@ function drawFrame(force) {
     // window.requestAnimationFrame(drawFrame);
 }
 
+
+function drawNextFrame(force, framenum) {
+    if(!playing && !force) {
+        return;
+    }
+    var nFrames = state.videos[0].duration * fps
+    for (var i = 0; i < state.videos.length; i++) {
+        state.videos[i].currentTime = (framenum / nFrames) * state.videos[0].duration;
+    }
+
+    const fix = Math.max(0, Math.min(Math.floor(framenum), state.data.length-1));
+    setTimeout(function() {
+        updateKeypoints(state.data[fix])
+        draw2D(fix);
+    }, 0);
+    setTimeout(drawFrame, 1000.0/fps);
+}
+
 function getUniqueTrialBehaviors() {
     var uniqueTrialBehaviors = new Set();
     Object.keys(state.behaviors).forEach(function(id) {
@@ -660,7 +687,6 @@ function drawActogram() {
                     console.log(state.behaviors[bout.bout_id].start);
                     state.behaviors[bout.bout_id].start = start; 
                     state.behaviors[bout.bout_id].end = end;
-                    state.behaviors[bout.bout_id].manual = true;
                     updateBehaviorState(behavior, bout.color, rect);
                 }
 
@@ -678,7 +704,6 @@ function drawActogram() {
                     }
                     state.behaviors[bout.bout_id].start = start;
                     state.behaviors[bout.bout_id].end = end;
-                    state.behaviors[bout.bout_id].manual = true;
                     updateBehaviorState(behavior, bout.color, rect);
                 }
             });
@@ -687,6 +712,7 @@ function drawActogram() {
         state.behaviorCanvases[behavior].tabIndex = '1';
         state.behaviorCanvases[behavior].addEventListener('keyup', (e) => {
             removeBout(e, behavior);
+            expandContractBout(e, behavior);
         });
 
         state.behaviorCanvases[behavior].addEventListener('dblclick', (e) => {
@@ -740,6 +766,54 @@ function drawActogram() {
 
         });
     });
+}
+
+
+function expandContractBout(e, behavior) {
+
+    if (!state.selectedBout) {
+        return;
+    }
+
+    Object.keys(state.bouts[behavior]).forEach(function(id) {
+        var bout = state.bouts[behavior][id];
+        var nFrames = state.videos[0].duration * fps;
+        var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior];
+        var rect = state.behaviorCanvases[behavior].getBoundingClientRect();
+
+        if (bout.selected && e.shiftKey) {
+            switch(e.which) {
+                case 37:
+                    state.behaviors[id].start = Math.max(0, state.behaviors[id].start - 1); 
+                    updateBehaviorState(behavior, bout.color, rect);
+                    break;
+                case 39:
+                    state.behaviors[id].start = Math.min(state.behaviors[id].start + 1, nFrames); 
+                    updateBehaviorState(behavior, bout.color, rect);
+                    break;
+                default:
+                    break;
+            }
+            drawNextFrame(true, state.behaviors[id].start);
+        }
+
+        if (bout.selected && e.ctrlKey) {
+            switch(e.which) {
+                case 37:
+                    state.behaviors[id].end = Math.max(0, state.behaviors[id].end - 1); 
+                    updateBehaviorState(behavior, bout.color, rect);
+                    break;
+                case 39:
+                    state.behaviors[id].end = Math.min(state.behaviors[id].end + 1, nFrames); 
+                    updateBehaviorState(behavior, bout.color, rect);
+                    break;
+                default:
+                    break;
+            }
+            drawNextFrame(true, state.behaviors[id].end);
+        }
+    });
+
 }
 
 function removeBout(e, behavior) {
@@ -890,6 +964,7 @@ function updateBehaviorState(behavior, color, rect) {
     if (state.selectedBout) {
         var nFrames = state.videos[0].duration * fps;
         var id = state.selectedBout;
+        state.behaviors[id].manual = true;
         state.bouts[behavior][state.selectedBout] = {
             bout_id: state.behaviors[id]['bout_id'],
             start: state.behaviors[id]['start'],
@@ -898,11 +973,11 @@ function updateBehaviorState(behavior, color, rect) {
             y: 0,
             width: state.behaviorCanvases[behavior].width*((state.behaviors[id]['end']-state.behaviors[id]['start'])/nFrames),
             height: state.behaviorCanvases[behavior].height,
-            right: (rect.width-2) * (bout.end/nFrames),
-            left: (rect.width-2) * (bout.start/nFrames),
+            right: (rect.width-2) * (state.behaviors[id]['end']/nFrames),
+            left: (rect.width-2) * (state.behaviors[id]['start']/nFrames),
             color: color, 
             selected: true,
-            manual: true
+            manual: state.behaviors[id].manual
         };
     }; 
 
