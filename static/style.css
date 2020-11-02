@@ -42,7 +42,7 @@ p {
     width: 200px;
     display: block;
     margin: 0 auto;
-    margin-top: 10px
+    margin-top: 10px;
 }
 
 .selectVideoContainer {
@@ -77,12 +77,11 @@ p {
 }
 
 button#addBehavior {
-    display: block;
     width: 15%;
     height: 22px;
     margin-left: 5px;
-    margin-right: 5px;
-    margin-top: 20px;
+    margin-right: 0px;
+    margin-top: 5px;
     border: 1px solid white;
     padding: 0px;
     background-color: black;
@@ -90,12 +89,35 @@ button#addBehavior {
 }
 
 button#pushChanges {
-    display: block;
     width: 15%;
     height: 22px;
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 0px;
+    /*margin-top: 10px;*/
+    border: 1px solid white;
+    padding: 0px;
+    background-color: black;
+    color: white;
+}
+
+button#undo{
+    width: 15%;
+    height: 22px;
+    margin-left:2px; /*30%;*/
+    margin-right: 0px;
+    /*margin-top: 20px;*/
+    border: 1px solid white;
+    padding: 0px;
+    background-color: black;
+    color: white;
+}
+
+button#redo {
+    width: 15%;
+    height: 22px;
+    margin-left: 2px;
+    margin-right: 0px;
+    /*margin-top: 10px;*/
     border: 1px solid white;
     padding: 0px;
     background-color: black;

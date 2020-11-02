@@ -246,7 +246,6 @@ window.addEventListener('DOMContentLoaded', function(){
     fetch('/get-sessions')
         .then(response => response.json())
         .then(data => {
-            console.log("inside");
             console.log(state_url);
             state.sessions = data.sessions;
 
@@ -592,13 +591,13 @@ function drawActogram() {
     for (var i in state.uniqueTrialBehaviors) {
 
         var behaviorContainer = document.createElement('div');
-        behaviorContainer.id = "behaviorContainer";
+        behaviorContainer.className = "behaviorContainer";
         behaviorContainer.style.height = '32px';
         actogram.appendChild(behaviorContainer);
 
         var behaviorName = document.createElement('input');
         behaviorName.className = "behaviorName";
-        behaviorName.readOnly = true;
+        behaviorName.readOnly = false;
         behaviorName.value = state.uniqueTrialBehaviors[i];
         behaviorName.style.border = '1px solid ' + colors2[i%colors2.length];
         behaviorContainer.appendChild(behaviorName);
@@ -611,8 +610,6 @@ function drawActogram() {
         createBehavior(behaviorCanvas.id, colors2[i%colors2.length]);
         behaviorContainer.appendChild(behaviorCanvas);
     }
-
-    console.log(state.behaviorIds)
 
     var nFrames = state.videos[0].duration * fps;
     document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
@@ -694,7 +691,6 @@ function drawActogram() {
                             end = Math.min(start + minFrames, nFrames);
                         }
                     }
-                    console.log(state.behaviors[bout.bout_id].start);
                     state.behaviors[bout.bout_id].start = start; 
                     state.behaviors[bout.bout_id].end = end;
                     updateBehaviorState(behaviorId, bout.color, rect);
@@ -738,19 +734,30 @@ function drawActogram() {
         });
     });
 
-    document.querySelectorAll('.behaviorName').forEach(name => {
-        var oldName = name.value;
-        var newName = '';
+    document.querySelectorAll('.behaviorContainer').forEach(container => {
+        
+        var behaviorId = container.childNodes[1].id;
+        var name = container.childNodes[0];
+        var oldName = name.value; 
+        var newName = ''; 
+
         name.addEventListener('change', (e) => {
-
             newName = name.value;
+            state.behaviorIds[behaviorId] = newName;
             Object.keys(state.behaviors).forEach(function(id) {
-                console.log(state.behaviors[id]['behavior'])
                 if (state.behaviors[id]['behavior'] === oldName) {
-                    state.behaviors[id]['behavior'] = newName;
-                    console.log(state.behaviors[id]['behavior'])
 
-                    var changedBout = state.behaviors[id];
+                    var changedBout = {
+                        behavior: state.behaviors[id].behavior,
+                        bout_id: state.behaviors[id].bout_id,
+                        end: state.behaviors[id].end,
+                        filename: state.behaviors[id].filename,
+                        folders: state.behaviors[id].folders,
+                        manual: state.behaviors[id].manual,
+                        session: state.behaviors[id].session,
+                        start: state.behaviors[id].start
+                    };
+                    state.behaviors[id]['behavior'] = newName;
                     state.changes = {
                         id: id,
                         session: state.session,
@@ -758,22 +765,16 @@ function drawActogram() {
                         new: {behavior: newName}, 
                         modification: 'changed behavior'
                     }
-                state.behaviorChanges.push(state.changes);
-                }     
-            });
-            state.bouts[newName] = state.bouts[oldName];
-            delete state.bouts[oldName];
-            
-            state.behaviorCanvases[oldName].id = newName;
-            state.behaviorCanvases[newName] = document.getElementById(newName);
-            delete state.behaviorCanvases[oldName];
-            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
-            console.log(state.uniqueTrialBehaviors);
-            var behaviorIdList = Object.keys(state.behaviorIds);
-            for (var i in behaviorIdList) {
-                createBehavior(behaviorIdList[i], colors2[i%colors2.length]);
-            }
+                    state.behaviorChanges.push(state.changes);
+                }    
+            }); 
         });
+        
+        state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+        var behaviorIdList = Object.keys(state.behaviorIds);
+        for (var i in behaviorIdList) {
+            createBehavior(behaviorIdList[i], colors2[i%colors2.length]);
+        }
     });
 }
 
@@ -914,7 +915,6 @@ function addBout(e, behaviorId) {
         modification: 'added'
     }
     state.behaviorChanges.push(state.changes);
-    console.log(state.behaviorChanges);
 }
 
 
@@ -928,11 +928,9 @@ function whenMouseDown() {
     }
 
     if (state.isResizeDrag || state.isDrag) {
-        console.log(state.behaviors)
         var currentBout = state.behaviors[state.selectedBout];
         state.changes.id = currentBout.bout_id;
         state.changes.session = state.session;
-        console.log(currentBout); 
         state.changes.old = {
             bout_id: currentBout.bout_id, 
             session: state.session, 
@@ -954,8 +952,8 @@ function whenMouseUp() {
         state.changes.new = {start: newBout.start, end: newBout.end, manual: true};
         state.behaviorChanges.push(state.changes);
         state.modified = false;
-        console.log(state.behaviorChanges);
     }
+
     state.expectResize = -1;
     state.isResizeDrag = false;
     state.isDrag = false;
@@ -1059,10 +1057,10 @@ function createBehavior(behaviorId, color) {
     state.behaviorCanvases[behaviorId], ctx = updateCanvas(state.behaviorCanvases[behaviorId], ctx);
     state.behaviorCanvases[behaviorId].style.border ='1px solid ' + color;
 
-    bouts = {};
+    var bouts = {};
     console.log(state.behaviors)
     Object.keys(state.behaviors).forEach(function(id) {
-        if (state.behaviors[id]['behavior'] == state.behaviorIds[behaviorId]) {
+        if (state.behaviors[id]['behavior'] == state.behaviorIds[behaviorId]) { // fix, add bahavior id to state.behaviorsS
             bout = {
                 bout_id: state.behaviors[id]['bout_id'],
                 start: state.behaviors[id]['start'],
@@ -1077,7 +1075,6 @@ function createBehavior(behaviorId, color) {
             bouts[bout.bout_id] = bout;
         }
     });
-    console.log(bouts)
     state.bouts[behaviorId] = bouts;
     drawBehavior(behaviorId, ctx); 
 }
