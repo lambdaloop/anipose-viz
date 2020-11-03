@@ -405,8 +405,8 @@ function updateTrial(trial) {
         state.allBehaviorChanges.push(state.behaviorChanges[i]);
     }
     state.behaviorChanges = [];
-    state.undo = [];
     state.redo = [];
+    state.newBehaviors = 0;
 
     playing = false;
     hide2d = false;
@@ -589,18 +589,32 @@ function undo() {
     var change = state.behaviorChanges.pop();
     if (change.modification !== 'added') {
         state.behaviors[change.id] = change.old;
-        var rect = state.behaviorCanvases[change.old.behavior_id].getBoundingClientRect();
-        updateBehaviorState(change.old.behavior_id, state.bouts[change.old.behavior_id][change.old.bout_id].color, rect);
     } else {
         delete state.behaviors[change.id];
-        var rect = state.behaviorCanvases[change.new.behavior_id].getBoundingClientRect();
-        updateBehaviorState(change.new.behavior_id, state.bouts[change.new.behavior_id][change.new.bout_id].color, rect);
     }
-    // drawActogram();
+    state.redo.push(change);
+    drawActogram();
 }
 
 function redo() {
+    if (state.redo.length === 0) {
+        console.log('no changes to redo');
+        return; 
+    }
 
+    var change = state.redo.pop(); 
+    if (change.modification !== 'removed') {
+        var restoredBout = change.old;
+        Object.keys(change.new).forEach(function(key) {
+            restoredBout[key] = change.new[key];
+        });
+        state.behaviors[change.id] = restoredBout; 
+        // fix bug for redo changed behavior
+    } else {
+        delete state.behaviors[change.id];
+    }
+    state.behaviorChanges.push(change);
+    drawActogram();
 }
 
 function drawActogram() {
@@ -628,7 +642,7 @@ function drawActogram() {
         });
     }
 
-    var ix = 0
+    var ix = 0;
     Object.keys(state.behaviorIds).forEach(function(behaviorId) {
         var behaviorContainer = document.createElement('div');
         behaviorContainer.className = "behaviorContainer";
@@ -637,7 +651,6 @@ function drawActogram() {
 
         var behaviorName = document.createElement('input');
         behaviorName.className = "behaviorName";
-        behaviorName.readOnly = false;
         behaviorName.value = state.behaviorIds[behaviorId]; 
         behaviorName.style.border = '1px solid ' + colors2[ix%colors2.length];
         behaviorContainer.appendChild(behaviorName);
@@ -778,7 +791,7 @@ function drawActogram() {
         
         var behaviorId = container.childNodes[1].id;
         var name = container.childNodes[0];
-        var oldName = name.value; 
+        var oldName =  JSON.parse(JSON.stringify(name.value));
         var newName = ''; 
 
         name.addEventListener('change', (e) => {
@@ -1206,18 +1219,23 @@ function pause() {
 }
 
 function addBehavior() {
+    // state.uniqueTrialBehaviors.push('default' + state.newBehaviors);
+    // state.newBehaviors += 1;
     state.uniqueTrialBehaviors.push('default');
     drawActogram();
 }
 
 function pushChanges() {
 
-    var behaviorChanges = state.behaviorChanges;
+    for (var i=0; i<state.behaviorChanges.length; i++) {
+        state.allBehaviorChanges.push(state.behaviorChanges[i]);
+    }
+    var allBehaviorChanges = state.allBehaviorChanges;
 
     fetch('/update-behavior', {
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
-        body: JSON.stringify({behaviorChanges})
+        body: JSON.stringify({allBehaviorChanges})
 
     }).then(function (response) { 
         return response.text();
@@ -1228,6 +1246,7 @@ function pushChanges() {
 
     updateTrial(state.trial);
     state.allBehaviorChanges = [];
+    state.behaviorChanges = [];
 }
 
 function togglePlayPause() {
