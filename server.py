@@ -302,12 +302,13 @@ def merge_behavior_changes(behavior_changes):
             json.dump(behavior_dict, json_file, indent = 4)
             json_file.truncate()
 
-    return 'changes merged'
+    message = 'behavior labels successfully updated' 
+    return message
 
 @app.route('/update-behavior', methods=['POST'])
 def update_behaviors():
     req_data = request.get_json()
-    behavior_changes = req_data['behaviorChanges']
+    behavior_changes = req_data['allBehaviorChanges']
     print(behavior_changes)
     updated_behaviors = merge_behavior_changes(behavior_changes)
     return updated_behaviors
