@@ -28,8 +28,8 @@ import json
 ## config.toml
 
 # prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-# prefix = '/media/turritopsis/pierre/gdrive/viz'
-prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
+prefix = '/media/turritopsis/pierre/gdrive/viz'
+# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
 
@@ -118,7 +118,6 @@ def process_all(source_dir, process_session, **args):
 
 
 def get_unique_behaviors(session_path):
-
     session = os.path.basename(session_path)
     path = safe_join(session_path, 'behaviors.json')
     if not os.path.exists(path):
@@ -264,8 +263,7 @@ def get_behaviors(session, folders, filename):
     with open(path) as json_file:
         behavior_dict = json.load(json_file)
 
-
-    bid_dict = behavior_dict.get(folders, {}).get(filename, {})
+    behaviors = behavior_dict.get(folders, {}).get(filename, {})
 
     return jsonify(behaviors)
 
