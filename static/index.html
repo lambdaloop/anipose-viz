@@ -29,12 +29,25 @@
             <button id="speedup" onclick="speedupVideo()">speed up</button>
             <span id="speed" class="white">slowed 10x</span>
         </div>
-        <div id="playButtons" class="buttons">
+<!--         <div> 
+            <button id="undo">undo edit</button></button>
+            <button id="redo">redo edit</button></button>
+            <button id="pushChanges" onclick="pushChanges()">push changes</button></button>
+        </div> -->
+        <div id="playButtons" class="behaviorButtons">
             <button id="play" onclick="togglePlayPause();">play</button>
             <progress id='progressBar' min='0' max='100' value='0'>0% played</progress>
         </div>
         <div id="actogram"></div></div>
-        <button id="toggle2d"></button></button>
+        <div>
+        <div> 
+            <button id="addBehavior" onclick="addBehavior()">add behavior</button></button>
+            <button id="pushChanges" onclick="pushChanges()">push changes</button></button>
+            <button id="undo" onclick="undo()">undo edit</button></button>
+            <button id="redo" onclick="redo()">redo edit</button></button>
+        </div>
+            <button id="toggle2d"></button></button>
+        </div>
         <div id="vidlist">
             <div class="container">
                 <video class="vid" preload="auto" loop="true">

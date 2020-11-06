@@ -28,8 +28,8 @@ import json
 ## config.toml
 
 # prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-prefix = '/media/turritopsis/pierre/gdrive/viz'
-# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
+# prefix = '/media/turritopsis/pierre/gdrive/viz'
+prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
 
@@ -135,9 +135,9 @@ def get_unique_behaviors(session_path):
         for file in filenames:
             unique_behaviors = {}
             rel_path = safe_join(session, folder, file)
-            bdict = behaviors[folder][file]
-            for bid, bout in bdict.items():
-                behavior = bout['behavior']
+            bouts = behaviors[folder][file]
+            for key in list(bouts.keys()):
+                behavior = bouts[key]['behavior']
                 unique_behaviors[behavior] = True
                 session_behaviors.add(behavior)
             trial_behaviors[rel_path] = unique_behaviors
@@ -264,13 +264,58 @@ def get_behaviors(session, folders, filename):
     with open(path) as json_file:
         behavior_dict = json.load(json_file)
 
+
     bid_dict = behavior_dict.get(folders, {}).get(filename, {})
 
-    behaviors = []
-    for bid, b in bid_dict.items():
-        behaviors.append(b)
-
     return jsonify(behaviors)
+
+def merge_behavior_changes(behavior_changes):
+
+    session_changes = defaultdict(list)
+    for b in behavior_changes:
+       session_changes[b['session']].append(b)
+
+    for session in session_changes.keys():
+
+        changes = session_changes[session]
+        path = safe_join(prefix, session, 'behaviors.json')
+        if not os.path.exists(path):
+            return [], {}
+
+        with open(path, 'r+') as json_file:
+            behavior_dict = json.load(json_file)
+
+            for change in changes:
+
+                if change['modification'] == 'added':
+                    bout = change['new']
+                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+
+                elif change['modification'] == 'removed': 
+                    bout = change['old']
+                    behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
+
+                else: # properties of an existing bout were edited (resized, translated, behavior name changed)
+                    bout = change['old']
+                    edits = change['new']
+                    for key in list(edits.keys()):
+                        bout[key] = edits[key]
+                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+
+            json_file.seek(0)
+            json.dump(behavior_dict, json_file, indent = 4)
+            json_file.truncate()
+
+    message = 'behavior labels successfully updated' 
+    return message
+
+@app.route('/update-behavior', methods=['POST'])
+def update_behaviors():
+    req_data = request.get_json()
+    behavior_changes = req_data['allBehaviorChanges']
+    print(behavior_changes)
+    updated_behaviors = merge_behavior_changes(behavior_changes)
+    return updated_behaviors
 
 @app.route('/video/<session>/<folders>/<filename>')
 def get_video(session, folders, filename):
@@ -329,4 +374,5 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
-    app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
+    # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
