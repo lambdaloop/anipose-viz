@@ -723,8 +723,12 @@ function drawActogram() {
                     ctx, color = getBoutColor(ctx, bout, behaviorId);
                     ctx.beginPath();
                     ctx.fillStyle = color;
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 2;
+                    if(state.behaviors[bout.bout_id].manual) {
+                        ctx.strokeStyle = 'white';
+                    } else {
+                        ctx.strokeStyle = '#444444';
+                    }
+                    ctx.lineWidth = 3;
                     ctx.rect(bout.x, bout.y, bout.width, bout.height);
                     ctx.fill();
                     ctx.stroke();
@@ -1134,20 +1138,22 @@ function getBoutColor(ctx, bout, behaviorId) {
     } else {
         // color = 'gray'
         var pc = document.createElement('canvas');
-        pc.width = state.behaviorCanvases[behaviorId].width/30;
+        // pc.width = state.behaviorCanvases[behaviorId].width/30;
+        pc.width = 20;
         pc.height = state.behaviorCanvases[behaviorId].height;
         var pctx = pc.getContext('2d');
         pctx.fillStyle = state.behaviorCanvases[behaviorId].style.borderColor;
         pctx.fillRect(0, 0, pc.width, pc.height);
-        pctx.lineWidth = pc.width / 3;
-        pctx.strokeStyle = 'black';
+        // pctx.lineWidth = pc.width / 3;
+        pctx.lineWidth = 4;
+        pctx.strokeStyle = '#444444';
         ctx.beginPath();
-        pctx.moveTo(0, 0);
-        pctx.lineTo(pc.width, pc.height);
+        pctx.moveTo(2, 0);
+        pctx.lineTo(pc.width-10, pc.height);
         pctx.stroke();
         ctx.closePath();
         color = ctx.createPattern(pc, 'repeat-x');
-        ctx.fillStyle = color;
+        // ctx.fillStyle = color;
     }
     return ctx, color;
 }
@@ -1159,8 +1165,12 @@ function drawBehavior(behaviorId, ctx) {
         ctx, color = getBoutColor(ctx, bout, behaviorId);
         ctx.beginPath();
         ctx.fillStyle = color;
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        if(state.behaviors[bout.bout_id].manual) {
+            ctx.strokeStyle = 'white';
+        } else {
+            ctx.strokeStyle = '#444444';
+        }
+        ctx.lineWidth = 3;
         ctx.rect(bout.x, bout.y, bout.width, bout.height);
         ctx.fill();
         ctx.stroke();
