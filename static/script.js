@@ -227,6 +227,13 @@ window.addEventListener('DOMContentLoaded', function(){
         }
     });
 
+    window.addEventListener('keydown', function(e) {
+        if(e.keyCode == 32 && e.target == document.body) {
+            e.preventDefault();
+            togglePlayPause();
+        }
+    });
+
     // state.trial = {
     //     session: "5.16.19",
     //     folder: "Fly 2_0",
@@ -999,7 +1006,7 @@ function addBout(e, behaviorId) {
     var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
     var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
 
-    var length = 20;
+    var length = Math.floor(nFrames / 30);
     var start = Math.floor((point.x / (rect.width - 2)) * nFrames);
     var end = Math.min(start + length, nFrames);
     var newId = generateId(22);
@@ -1339,6 +1346,7 @@ function pushChanges() {
 
 function togglePlayPause() {
     if(!playing) {
+        console.log(playing)
         play();
     } else {
         pause();
