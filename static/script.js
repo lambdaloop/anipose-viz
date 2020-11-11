@@ -219,6 +219,14 @@ window.addEventListener('DOMContentLoaded', function(){
         }
     });
 
+    $(document).keyup(function(e) {
+        if (e.key === "Escape") { 
+            state.selectedBout = undefined;
+            state.selectedBehavior = undefined;
+            drawActogram();
+        }
+    });
+
     // state.trial = {
     //     session: "5.16.19",
     //     folder: "Fly 2_0",
@@ -350,7 +358,7 @@ function updateSession(session, state_url) {
             $('#selectBehavior').empty();
             var behaviorList = $("#selectBehavior");
             behaviorList.append(new Option('', ''));
-            // data.sessionBehaviors = data.sessionBehaviors.sort();
+            data.sessionBehaviors = data.sessionBehaviors.sort();
             for (var i in data.sessionBehaviors) {
                 behaviorList.append(new Option(data.sessionBehaviors[i], data.sessionBehaviors[i]));
             }
@@ -945,6 +953,7 @@ function expandContractBout(e, behaviorId) {
     });
 
 }
+
 
 function removeBout(e, behaviorId) {
 
