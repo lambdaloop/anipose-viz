@@ -598,7 +598,7 @@ function getUniqueTrialBehaviors() {
 
 function undo() {
     if (state.behaviorChanges.length === 0) {
-        state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+        state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
         drawActogram();
         alert('no changes to undo');
         return;
@@ -620,7 +620,7 @@ function undo() {
         delete state.behaviors[change.id];
     }
     state.redo.push(change);
-    state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+    state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
     drawActogram();
 }
 
@@ -790,6 +790,11 @@ function drawActogram() {
                         if (end <= start){
                             end = Math.min(start + minFrames, nFrames);
                         }
+                        // var timeToSet = (end/nFrames)*state.videos[0].duration;
+                        // for(var i=0; i<state.videos.length; i++) {
+                        //     state.videos[i].currentTime = timeToSet;
+                        // }
+                        // drawFrame(true);
                     }
                     state.behaviors[bout.bout_id].start = start; 
                     state.behaviors[bout.bout_id].end = end;
@@ -844,6 +849,11 @@ function drawActogram() {
 
         name.addEventListener('change', (e) => {
             newName = name.value;
+            if (Object.values(state.behaviorIds).includes(newName)) {
+                name.value = oldName;
+                newName = oldName;
+                alert('this behavior already exists');
+            }
             state.behaviorIds[behaviorId] = newName;
             Object.keys(state.behaviors).forEach(function(id) {
                 if (state.behaviors[id].behavior_id === behaviorId) {
@@ -871,7 +881,7 @@ function drawActogram() {
                     state.redo = [];
                 }    
             }); 
-            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+            state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
             console.log(state.behaviorIds)
             console.log(state.uniqueTrialBehaviors);
             drawActogram(); 
@@ -972,7 +982,6 @@ function toggleAutoManual(e, behaviorId) {
         var bout = state.bouts[behaviorId][id];
         var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
         if (e.key === "Enter" && bout.selected) { 
-            console.log('hi');
             var oldBout = JSON.parse(JSON.stringify(state.behaviors[id]));
             state.changes = {
                 id: id,
@@ -1024,7 +1033,7 @@ function removeBout(e, behaviorId) {
             state.selectedBehavior = undefined;
             updateBehaviorState(behaviorId, state.behaviorCanvases[behaviorId].style.borderColor, rect);
             console.log(state.behaviorChanges);
-            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+            state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
             drawActogram();
         }
     });
@@ -1061,7 +1070,7 @@ function addBout(e, behaviorId) {
     state.behaviors[newId] = addedBout;
     state.selectedBehavior = behaviorId;
     state.selectedBout = addedBout.bout_id;
-    state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+    state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
     var behaviorIdList = Object.keys(state.behaviorIds);
     for (var i in behaviorIdList) {
         createBehavior(behaviorIdList[i], colors2[i%colors2.length]);
@@ -1340,9 +1349,16 @@ function pause() {
     draw2D(framenum);
 }
 
-function addBehavior() {
+function clearUnusedBehavior() {
     state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
-    state.uniqueTrialBehaviors.push(generateId(10)); 
+    drawActogram();
+}
+
+function addBehavior() {
+    state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
+    var behaviorId = generateId(10);
+    state.uniqueTrialBehaviors.push(behaviorId);
+    state.behaviorIds[behaviorId] = behaviorId;
     drawActogram();
 
     var name = 'name' + (state.uniqueTrialBehaviors.length-1).toString();
@@ -1375,7 +1391,6 @@ function pushChanges() {
     state.behaviorChanges = [];
     state.redo = [];
     state.allBehaviorChanges = [];
-    // state.behaviorChanges = [];
     updateTrial(state.trial)
 }
 

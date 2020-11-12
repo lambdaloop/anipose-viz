@@ -86,6 +86,7 @@ button#addBehavior {
     padding: 0px;
     background-color: black;
     color: white;
+    overflow: auto;
 }
 
 button#pushChanges {
@@ -93,23 +94,23 @@ button#pushChanges {
     height: 22px;
     margin-left: 2px;
     margin-right: 0px;
-    /*margin-top: 10px;*/
     border: 1px solid white;
     padding: 0px;
     background-color: black;
     color: white;
+    overflow: auto;
 }
 
 button#undo{
     width: 15%;
     height: 22px;
-    margin-left:2px; /*30%;*/
+    margin-left:2px;
     margin-right: 0px;
-    /*margin-top: 20px;*/
     border: 1px solid white;
     padding: 0px;
     background-color: black;
     color: white;
+    overflow: auto;
 }
 
 button#redo {
@@ -117,11 +118,23 @@ button#redo {
     height: 22px;
     margin-left: 2px;
     margin-right: 0px;
-    /*margin-top: 10px;*/
     border: 1px solid white;
     padding: 0px;
     background-color: black;
     color: white;
+    overflow: auto;
+}
+
+button#clearUnusedBehavior {
+    width: 15%;
+    height: 22px;
+    margin-left: 2px;
+    margin-right: 0px;
+    border: 1px solid white;
+    padding: 0px;
+    background-color: black;
+    color: white;
+    overflow:auto;
 }
 
 .behaviorName {
