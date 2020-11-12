@@ -28,8 +28,8 @@ import json
 ## config.toml
 
 # prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-prefix = '/media/turritopsis/pierre/gdrive/viz'
-# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
+# prefix = '/media/turritopsis/pierre/gdrive/viz'
+prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
 

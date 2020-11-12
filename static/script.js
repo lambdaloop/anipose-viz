@@ -227,6 +227,14 @@ window.addEventListener('DOMContentLoaded', function(){
         }
     });
 
+    $(document).mouseup(function(e) {
+        if (state.selectedBout) { 
+            state.selectedBout = undefined;
+            state.selectedBehavior = undefined;
+            drawActogram();
+        }
+    });
+
     window.addEventListener('keydown', function(e) {
         if(e.keyCode == 32 && e.target == document.body) {
             e.preventDefault();
@@ -523,14 +531,6 @@ var playing = false;
 var display2d = true;
 var prev_num = 0;
 
-// $(document).keyup(function(e) {
-//     if (e.keyCode == 87) {
-//         speedupVideo();
-//     } else if (e.keyCode == 89) {
-//         slowdownVideo();
-//     }
-// });
-
 function drawFrame(force) {
     if(!playing && !force) return;
     var ft = state.videos[0].currentTime * vid_fps;
@@ -697,7 +697,7 @@ function drawActogram() {
         behaviorCanvas.id = behaviorId;
         behaviorCanvas.className = 'behaviorCanvas';
         state.behaviorCanvases[behaviorCanvas.id] = behaviorCanvas;
-        createBehavior(behaviorCanvas.id, colors2[ix%colors2.length]);
+        createBehavior(behaviorId, colors2[ix%colors2.length]);
         behaviorContainer.appendChild(behaviorCanvas);
         ix += 1;
     });
@@ -819,6 +819,7 @@ function drawActogram() {
         state.behaviorCanvases[behaviorId].addEventListener('keyup', (e) => {
             removeBout(e, behaviorId);
             expandContractBout(e, behaviorId);
+            toggleAutoManual(e, behaviorId);
         });
 
         state.behaviorCanvases[behaviorId].addEventListener('dblclick', (e) => {
@@ -961,6 +962,40 @@ function expandContractBout(e, behaviorId) {
 
 }
 
+function toggleAutoManual(e, behaviorId) {
+
+    if (!state.selectedBout) {
+        return;
+    }
+
+    Object.keys(state.bouts[behaviorId]).forEach(function(id) {
+        var bout = state.bouts[behaviorId][id];
+        var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
+        if (e.key === "Enter" && bout.selected) { 
+            console.log('hi');
+            var oldBout = JSON.parse(JSON.stringify(state.behaviors[id]));
+            state.changes = {
+                id: id,
+                session: state.session,
+                old: oldBout,
+                new: {manual: !oldBout.manual}, 
+                modification: 'manual'
+            }
+            state.changes.old.session = state.session;
+            state.behaviors[id].manual = !state.behaviors[id].manual;
+            state.bouts[behaviorId][id].manual = !state.behaviors[id].manual;
+            state.behaviors[id].selected = false;
+            state.bouts[behaviorId][id].selected = false;
+            state.behaviorChanges.push(state.changes);
+            state.redo = [];
+            var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
+            drawBehavior(behaviorId, ctx); 
+            drawActogram();
+        }
+    });
+
+}
+
 
 function removeBout(e, behaviorId) {
 
@@ -989,7 +1024,7 @@ function removeBout(e, behaviorId) {
             state.selectedBehavior = undefined;
             updateBehaviorState(behaviorId, state.behaviorCanvases[behaviorId].style.borderColor, rect);
             console.log(state.behaviorChanges);
-            state.uniqueTrialBehaviors = getUniqueTrialBehaviors()
+            state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
             drawActogram();
         }
     });
