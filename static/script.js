@@ -66,6 +66,14 @@ var keypoints =  [
 
 var state = {};
 
+state.unlocked = false;
+var token = undefined;
+token = getCookie('token')
+if (token) {
+    state.unlocked = true;
+    console.log('unlocked')
+}
+
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');
@@ -1363,6 +1371,59 @@ function addBehavior() {
 
     var name = 'name' + (state.uniqueTrialBehaviors.length-1).toString();
     document.getElementById(name).focus();
+}
+
+function unlockEditing() {
+    var password = prompt("password:");
+
+    state.token = undefined;
+    fetch('/unlock-editing', {
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        body: JSON.stringify({password})
+
+    }).then(function (response) {
+        return response.text();
+
+    }).then(function (text) {
+        state.token = text;
+        alert(text);
+        checkValid(text)        
+    });
+    console.log(state.unlocked)
+}
+
+function checkValid(token) {
+
+    fetch('/validate', {
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        body: JSON.stringify({token})
+
+    }).then(function (response) {
+        return response.text();
+
+    }).then(function (text) {
+        if (text == 'True') {
+            console.log('unlocked')
+            setCookie('token', token)
+            unlock();
+        }
+    });
+    console.log(state.unlocked)
+    console.log(getCookie('token'))
+}
+
+function unlock() {
+    state.unlocked = true;
+}
+
+function getCookie(name) {
+    return localStorage.getItem(name);
+}
+
+function setCookie(name, value) {
+    return localStorage.setItem(name, value);
 }
 
 function pushChanges() {

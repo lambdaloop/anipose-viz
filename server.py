@@ -12,6 +12,8 @@ from glob import glob
 import os
 from collections import deque, defaultdict
 import re
+import string
+import random
 from datetime import datetime
 
 import pandas as pd
@@ -32,6 +34,8 @@ import json
 prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
+
+valid_tokens = set()
 
 
 def atoi(text):
@@ -79,6 +83,11 @@ def get_video_fnames(session_path):
 def get_folders(path):
     folders = next(os.walk(path))[1]
     return sorted(folders)
+
+def generate_token(length): 
+    letters = string.ascii_letters
+    token = ''.join(random.choice(letters) for i in range(length))
+    return token
 
 def process_all(source_dir, process_session, **args):
     pipeline_prefix = source_dir
@@ -307,12 +316,36 @@ def merge_behavior_changes(behavior_changes):
     message = 'behavior labels successfully updated' 
     return message
 
+# given password, generates a client token
+@app.route('/unlock-editing', methods=['POST'])
+def authenticate():
+    password_req = request.get_json()
+    password = password_req['password']
+    token = generate_token(10)
+    if password == 'flyflyfly':
+        valid_tokens.add(token)
+    return token
+
+def check_token(token):
+    valid = token in valid_tokens
+    return valid
+
+@app.route('/validate', methods=['POST'])
+def validate():
+    token_req = request.get_json()
+    token = token_req['token']
+    valid = token in valid_tokens
+    return str(valid)
+
 @app.route('/update-behavior', methods=['POST'])
 def update_behaviors():
     req_data = request.get_json()
     behavior_changes = req_data['allBehaviorChanges']
-    print(behavior_changes)
-    updated_behaviors = merge_behavior_changes(behavior_changes)
+    token = req_data['token']
+    valid = check_token(token)
+    updated_behaviors = ''
+    if valid:   
+        updated_behaviors = merge_behavior_changes(behavior_changes)
     return updated_behaviors
 
 @app.route('/video/<session>/<folders>/<filename>')
