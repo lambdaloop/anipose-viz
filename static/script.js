@@ -67,9 +67,9 @@ var keypoints =  [
 var state = {};
 
 state.unlocked = false;
-var token = undefined;
-token = getCookie('token')
-if (token) {
+state.token = undefined;
+state.token = getCookie('token')
+if (state.token) {
     state.unlocked = true;
     console.log('unlocked')
 }
@@ -193,7 +193,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var scene = createScene();
     var divFps = document.getElementById("fps");
 
-    state.allBehaviorChanges = [];
+    state.allBehaviorChanges = {};
     state.behaviorChanges = [];
     state.filterBehavior = '';
     var selectBehavior = document.getElementById("selectBehavior");
@@ -434,7 +434,10 @@ function updateTrial(trial) {
     state.camnames = trial.camnames;
 
     for (var i=0; i<state.behaviorChanges.length; i++) {
-        state.allBehaviorChanges.push(state.behaviorChanges[i]);
+        if (!state.allBehaviorChanges[url_suffix]) {
+            state.allBehaviorChanges[url_suffix] = [];
+        } 
+        state.allBehaviorChanges[url_suffix].push(state.behaviorChanges[i])
     }
     state.behaviorChanges = [];
     state.redo = [];
@@ -612,9 +615,13 @@ function undo() {
         return;
     }
     var change = state.behaviorChanges.pop();
+    var video = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname
     if (change.modification === 'changed behavior') {
         for (var i=0; i<state.behaviorChanges.length; i++) {
-            state.allBehaviorChanges.push(state.behaviorChanges[i]);
+            if (!state.allBehaviorChanges[video]) {
+                state.allBehaviorChanges[video] = [];
+            } 
+            state.allBehaviorChanges[video].push(state.behaviorChanges[i])
         }
         state.behaviorChanges = [];
         // Object.keys(state.behaviors).forEach(function(id) {
@@ -1376,39 +1383,21 @@ function addBehavior() {
 function unlockEditing() {
     var password = prompt("password:");
 
-    state.token = undefined;
     fetch('/unlock-editing', {
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
         body: JSON.stringify({password})
 
     }).then(function (response) {
-        return response.text();
+        return response.json();
 
-    }).then(function (text) {
-        state.token = text;
-        alert(text);
-        checkValid(text)        
-    });
-    console.log(state.unlocked)
-}
-
-function checkValid(token) {
-
-    fetch('/validate', {
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST',
-        body: JSON.stringify({token})
-
-    }).then(function (response) {
-        return response.text();
-
-    }).then(function (text) {
-        if (text == 'True') {
+    }).then(function (res) {
+        state.token = res['token'];
+        if (res['valid']) {
             console.log('unlocked')
-            setCookie('token', token)
+            setCookie('token', res['token'])
             unlock();
-        }
+        }       
     });
     console.log(state.unlocked)
     console.log(getCookie('token'))
@@ -1428,15 +1417,20 @@ function setCookie(name, value) {
 
 function pushChanges() {
 
+    var video = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname;
     for (var i=0; i<state.behaviorChanges.length; i++) {
-        state.allBehaviorChanges.push(state.behaviorChanges[i]);
+        if (!state.allBehaviorChanges[video]) {
+            state.allBehaviorChanges[video] = [];
+        } 
+        state.allBehaviorChanges[video].push(state.behaviorChanges[i])
     }
     var allBehaviorChanges = state.allBehaviorChanges;
+    var token = state.token;
 
     fetch('/update-behavior', {
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
-        body: JSON.stringify({allBehaviorChanges})
+        body: JSON.stringify({allBehaviorChanges, token})
 
     }).then(function (response) { 
         return response.text();
@@ -1447,11 +1441,14 @@ function pushChanges() {
 
     // updateTrial(state.trial);
     for (var i=0; i<state.behaviorChanges.length; i++) {
-        state.allBehaviorChanges.push(state.behaviorChanges[i]);
+        if (!state.allBehaviorChanges[video]) {
+            state.allBehaviorChanges[video] = [];
+        } 
+        state.allBehaviorChanges[video].push(state.behaviorChanges[i])
     }
     state.behaviorChanges = [];
     state.redo = [];
-    state.allBehaviorChanges = [];
+    state.allBehaviorChanges = {};
     updateTrial(state.trial)
 }
 

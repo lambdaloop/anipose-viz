@@ -37,7 +37,6 @@ cam_regex = "Cam-? ?([A-Z])"
 
 valid_tokens = set()
 
-
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -279,8 +278,9 @@ def get_behaviors(session, folders, filename):
 def merge_behavior_changes(behavior_changes):
 
     session_changes = defaultdict(list)
-    for b in behavior_changes:
-       session_changes[b['session']].append(b)
+    for b in list(behavior_changes.keys()):
+        changes = behavior_changes[b]
+        session_changes[changes[0]['session']].extend(changes)
 
     for session in session_changes.keys():
 
@@ -316,7 +316,6 @@ def merge_behavior_changes(behavior_changes):
     message = 'behavior labels successfully updated' 
     return message
 
-# given password, generates a client token
 @app.route('/unlock-editing', methods=['POST'])
 def authenticate():
     password_req = request.get_json()
@@ -324,18 +323,14 @@ def authenticate():
     token = generate_token(10)
     if password == 'flyflyfly':
         valid_tokens.add(token)
-    return token
+    valid = check_token(token)
+    response = jsonify({'token': token, 'valid': valid})
+    return response
 
 def check_token(token):
+    print('valid tokens:', valid_tokens)
     valid = token in valid_tokens
     return valid
-
-@app.route('/validate', methods=['POST'])
-def validate():
-    token_req = request.get_json()
-    token = token_req['token']
-    valid = token in valid_tokens
-    return str(valid)
 
 @app.route('/update-behavior', methods=['POST'])
 def update_behaviors():
