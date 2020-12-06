@@ -328,7 +328,6 @@ def authenticate():
     return response
 
 def check_token(token):
-    print('valid tokens:', valid_tokens)
     valid = token in valid_tokens
     return valid
 
