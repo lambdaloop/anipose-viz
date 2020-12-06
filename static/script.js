@@ -425,14 +425,8 @@ function updateSession(session, state_url) {
 }
 
 function updateTrial(trial) {
-    console.log(trial);
-    state.trial = trial;
-    var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
-    console.log(url_suffix)
-    window.location.hash = "#" + url_suffix;
 
-    state.camnames = trial.camnames;
-
+    var url_suffix = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname;
     for (var i=0; i<state.behaviorChanges.length; i++) {
         if (!state.allBehaviorChanges[url_suffix]) {
             state.allBehaviorChanges[url_suffix] = [];
@@ -441,6 +435,17 @@ function updateTrial(trial) {
     }
     state.behaviorChanges = [];
     state.redo = [];
+
+    console.log(trial);
+    state.trial = trial;
+    var url_suffix = trial.session + "/" + trial.folder + "/" + trial.vidname;
+    console.log(url_suffix)
+    window.location.hash = "#" + url_suffix;
+    state.camnames = trial.camnames;
+
+    // if (state.allBehaviorChanges[url_suffix]) {
+    //    state.behaviorChanges = state.allBehaviorChanges[url_suffix];
+    // }
 
     playing = false;
     hide2d = false;
@@ -507,10 +512,13 @@ function updateTrial(trial) {
                 updateProgressBar();
                 state.videoLoaded = true;            
                 if (state.behaviorLoaded) {
+                    if (state.allBehaviorChanges[url_suffix]) {
+                        applyBehaviorChanges();
+                        state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+                    }
                     drawActogram();
                 }
             }
-
         }, false);
     }
 
@@ -527,6 +535,10 @@ function updateTrial(trial) {
             state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
             state.behaviorLoaded = true;
             if (state.videoLoaded) {
+                if (state.allBehaviorChanges[url_suffix]) {
+                    applyBehaviorChanges();
+                    state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
+                }
                 drawActogram();
             }
         });
@@ -664,6 +676,24 @@ function redo() {
     }
     state.behaviorChanges.push(change);
     drawActogram();
+}
+
+function applyBehaviorChanges() {
+    var video = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname
+    var changes = state.allBehaviorChanges[video]
+    for (var i in changes) {
+        var change = changes[i]
+        if (change.modification === 'removed') {
+            delete state.behaviors[change.id];
+        } else {
+            var restoredBout = JSON.parse(JSON.stringify(change.old));
+            Object.keys(change.new).forEach(function(key) {
+                restoredBout[key] = change.new[key];
+            });
+            state.behaviors[change.id] = restoredBout; 
+        }
+    }
+
 }
 
 function drawActogram() {
@@ -1454,7 +1484,6 @@ function pushChanges() {
 
 function togglePlayPause() {
     if(!playing) {
-        console.log(playing)
         play();
     } else {
         pause();
