@@ -1223,10 +1223,12 @@ function selectBout(ctx) {
     ctx.beginPath();
     ctx.fillStyle = 'white';
     ctx.lineWidth = 2;
-    ctx.strokeStyle = bout.color;
     ctx.rect(bout.x, bout.y, bout.width, bout.height);
     ctx.fill();
-    ctx.stroke();
+    if (state.unlocked) {
+        ctx.strokeStyle = bout.color;
+        ctx.stroke();
+    }
 }
 
 function isSelected(point, bout) {
