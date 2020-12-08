@@ -350,6 +350,7 @@ function filterTrials() {
 
     console.log(state.trials)
     var ixs = [];
+    state.videoIndexes = {};
     $('#selectVideo').empty();
     var filteredTrials = $("#selectVideo");
     for (var j in state.trials) {
@@ -361,9 +362,32 @@ function filterTrials() {
             var key = j + "";
             ixs.push(j)
             filteredTrials.append(new Option(text, key))
+            state.videoIndexes[rel_path] = parseInt(j)
         }
-    }
+    };
     updateTrial(state.trials[ixs[0]]);
+}
+
+function nextVideo() {
+    var url_suffix = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname;
+    var allIndexes = Object.values(state.videoIndexes)
+    var currentIndex = allIndexes.indexOf(state.videoIndexes[url_suffix])
+    if (currentIndex < allIndexes[allIndexes.length-1]) {
+        var newIndex = allIndexes[currentIndex + 1]
+        updateTrial(state.trials[newIndex]) 
+        $('#selectVideo').val(newIndex).change()
+    }
+}
+
+function previousVideo() {
+    var url_suffix = state.trial.session + "/" + state.trial.folder + "/" + state.trial.vidname;
+    var allIndexes = Object.values(state.videoIndexes)
+    var currentIndex = allIndexes.indexOf(state.videoIndexes[url_suffix])
+    if (currentIndex > 0) {
+        var newIndex = allIndexes[currentIndex - 1]
+        updateTrial(state.trials[newIndex])
+        $('#selectVideo').val(newIndex).change()
+    }
 }
 
 function updateSession(session, state_url) {
@@ -390,6 +414,7 @@ function updateSession(session, state_url) {
             behaviorList.val("");
 
             var ix = 0;
+            state.videoIndexes = {};
             $('#selectVideo').empty();
             var list = $("#selectVideo");
             var vidname_folder_ix = {};
@@ -405,6 +430,8 @@ function updateSession(session, state_url) {
                     vidname_folder_ix[text] = key;
                     state.trials[key] = file;
                     list.append(new Option(text, key));
+                    var url_suffix = state.trials[key].session + "/" + state.trials[key].folder + "/" + state.trials[key].vidname;
+                    state.videoIndexes[url_suffix] = ix;
                     ix++;
                 }
             }
@@ -444,6 +471,20 @@ function updateTrial(trial) {
     console.log(url_suffix)
     window.location.hash = "#" + url_suffix;
     state.camnames = trial.camnames;
+
+    var nextButton = document.getElementById('nextVideo');
+    var previousButton = document.getElementById('previousVideo');
+    var ix = state.videoIndexes[url_suffix];
+    var allIndexes = Object.values(state.videoIndexes);
+    var currentIndex = allIndexes.indexOf(ix);
+    if (ix == allIndexes[0]) {
+        previousButton.style.visibility = 'hidden';
+    } else if (ix == allIndexes[allIndexes.length-1]) {
+        nextButton.style.visibility = 'hidden';
+    } else {
+        previousButton.style.visibility = 'visible';
+        nextButton.style.visibility = 'visible';
+    }
 
     // if (state.allBehaviorChanges[url_suffix]) {
     //    state.behaviorChanges = state.allBehaviorChanges[url_suffix];
@@ -738,6 +779,9 @@ function drawActogram() {
         behaviorName.id = 'name' + ix.toString();
         behaviorName.value = state.behaviorIds[behaviorId]; 
         behaviorName.style.border = '1px solid ' + colors2[ix%colors2.length];
+        if (!state.unlocked) {
+            behaviorName.readOnly = true;
+        }
         behaviorContainer.appendChild(behaviorName);
 
         var behaviorCanvas = document.createElement('canvas');

@@ -21,8 +21,13 @@
             <div class="selectVideoContainer">
             <select id="selectSession" name="session"></select>
             <select id="selectBehavior"></select>
-            <select id="selectVideo" name="video"></select>
+            <!-- <select id="selectVideo" name="video"></select> -->
             </div>
+        </div>
+        <div id="seekButtons" class="seek">
+            <button id="previousVideo" onclick="previousVideo()">previous</button>
+            <select id="selectVideo" name="video"></select>
+            <button id="nextVideo" onclick="nextVideo()">next</button>
         </div>
         <div id="speedButtons" class="buttons">
             <button id="slowdown" onclick="slowdownVideo()">slow down</button>
