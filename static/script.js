@@ -565,7 +565,11 @@ function updateTrial(trial) {
         }, false);
     }
 
-    state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
+    // state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
+    setInterval(function () {
+        // console.log(state.videos[0].currentTime);
+        updateProgressBar()
+    }, 15);
     
     url = '/behavior/' + url_suffix;
     state.behaviors = undefined;
@@ -1413,7 +1417,9 @@ function generateId(length) {
 function updateProgressBar() {
     var video = state.videos[0];
     var progressBar = document.getElementById('progressBar');
-    var percentage = Math.floor((100 / video.duration) * video.currentTime);
+    // var percentage = Math.floor((100 / video.duration) * video.currentTime);
+    var value = (100 / video.duration) * video.currentTime;
+    var percentage = Math.round((value + Number.EPSILON) * 1000) / 1000
     progressBar.value = percentage;
     progressBar.innerHTML = percentage + '% played';
 }
