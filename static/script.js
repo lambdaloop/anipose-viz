@@ -858,6 +858,7 @@ function drawActogram() {
             state.behaviorCanvases[behaviorId].addEventListener('keyup', (e) => {
                 removeBout(e, behaviorId);
                 expandContractBout(e, behaviorId);
+                translateBout(e, behaviorId)
                 toggleAutoManual(e, behaviorId);
             });
 
@@ -1079,7 +1080,68 @@ function expandContractBout(e, behaviorId) {
             drawNextFrame(true, state.behaviors[id].end);
         }
     });
+}
 
+function translateBout(e, behaviorId) {
+
+    if (!state.selectedBout) {
+        return;
+    }
+
+    Object.keys(state.bouts[behaviorId]).forEach(function(id) {
+        var bout = state.bouts[behaviorId][id];
+        var nFrames = state.videos[0].duration * fps;
+        var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior];
+        var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
+
+        state.changes = {
+                id: id,
+                session: state.session,
+                modification: 'edited'
+            };
+
+        state.changes.old = {
+            bout_id: state.behaviors[id].bout_id,
+            behavior_id: state.behaviors[id].behavior_id, 
+            session: state.session, 
+            folders: state.behaviors[id].folders, 
+            filename:state.behaviors[id].filename,
+            start: state.behaviors[id].start,
+            end: state.behaviors[id].end,
+            behavior: state.behaviors[id].behavior, 
+            manual: state.behaviors[id].manual
+        };
+
+        if (bout.selected) {
+            switch(e.which) {
+                case 37:
+                    if (state.behaviors[id].start == 0) {
+                        break;
+                    }
+                    state.behaviors[id].start = state.behaviors[id].start - 1; 
+                    state.behaviors[id].end = state.behaviors[id].end - 1;
+                    updateBehaviorState(behaviorId, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].start, end: state.behaviors[id].end, manual: true};
+                    state.behaviorChanges.push(state.changes);
+                    state.redo = [];
+                    break;
+                case 39:
+                    if (state.behaviors[id].end == nFrames) {
+                        break;
+                    }
+                    state.behaviors[id].start = state.behaviors[id].start + 1;
+                    state.behaviors[id].end = state.behaviors[id].end + 1; 
+                    updateBehaviorState(behaviorId, bout.color, rect);
+                    state.changes.new = {start: state.behaviors[id].start, end: state.behaviors[id].end, manual: true};
+                    state.behaviorChanges.push(state.changes);
+                    state.redo = [];
+                    break;
+                default:
+                    break;
+            }
+            drawNextFrame(true, state.behaviors[id].start);
+        }
+    });
 }
 
 function toggleAutoManual(e, behaviorId) {
