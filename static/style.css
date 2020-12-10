@@ -46,6 +46,10 @@ p {
     margin-top: 10px;
 }
 
+#timer {
+    margin-left: 5px;
+}
+
 .seek {
     display: block;
     text-align: center

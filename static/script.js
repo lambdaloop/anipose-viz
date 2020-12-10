@@ -578,8 +578,26 @@ function updateTrial(trial) {
     // state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
     setInterval(function () {
         // console.log(state.videos[0].currentTime);
-        updateProgressBar()
-    }, 15);
+        updateProgressBar();
+    }, 10);
+
+
+    function formatTime(milliseconds) {
+        var mseconds = Math.floor(milliseconds % 1000)
+        mseconds = mseconds.toString().substring(0, 2);
+        mseconds = (mseconds >= 10) ? mseconds : '0' + mseconds;
+        var seconds = Math.floor(milliseconds / 1000);
+        seconds = (seconds >= 10) ? seconds : '0' + seconds;
+        var minutes = Math.floor(seconds / 60);
+        minutes = (minutes >= 10) ? minutes : '0' + minutes;
+        return minutes + ':' + seconds + ':' + mseconds;
+    }
+
+    setInterval(function () {
+        var totalmseconds = Math.floor(state.videos[0].duration * 1000);
+        var currentmseconds = Math.floor(state.videos[0].currentTime * 1000);
+        timer.innerHTML = formatTime(currentmseconds) + ' / ' + formatTime(totalmseconds);
+    }, 5);
     
     url = '/behavior/' + url_suffix;
     state.behaviors = undefined;
