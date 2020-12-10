@@ -320,12 +320,18 @@ def merge_behavior_changes(behavior_changes):
 def authenticate():
     password_req = request.get_json()
     password = password_req['password']
-    token = generate_token(10)
+    token = -1
     if password == 'flyflyfly':
+        token = generate_token(10)
         valid_tokens.add(token)
     valid = check_token(token)
     response = jsonify({'token': token, 'valid': valid})
     return response
+
+@app.route('/get-token/<token>')
+def check_existing_token(token):
+    valid = token in valid_tokens
+    return jsonify({'valid': valid})
 
 def check_token(token):
     valid = token in valid_tokens
@@ -337,7 +343,7 @@ def update_behaviors():
     behavior_changes = req_data['allBehaviorChanges']
     token = req_data['token']
     valid = check_token(token)
-    updated_behaviors = ''
+    updated_behaviors = 'invalid token'
     if valid:   
         updated_behaviors = merge_behavior_changes(behavior_changes)
     return updated_behaviors

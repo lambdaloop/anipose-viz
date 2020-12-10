@@ -70,10 +70,20 @@ state.unlocked = false;
 state.token = undefined;
 state.token = getCookie('token')
 if (state.token) {
-    state.unlocked = true;
-    console.log('unlocked')
+    var url = '/get-token/' + state.token;
+    fetch(url)
+        .then(response => response.json())
+        .then(valid => {
+            console.log(valid.valid);
+            if (valid.valid) {
+                state.unlocked = true;
+                console.log('unlocked')
+            }
+            drawButtons();
+        });
+} else {
+    drawButtons();
 }
-drawButtons();
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
@@ -1567,7 +1577,7 @@ function unlockEditing() {
 
     }).then(function (res) {
         state.token = res['token'];
-        if (res['valid']) {
+        if (res['valid'] && state.token != -1) {
             console.log('unlocked')
             setCookie('token', res['token'])
             unlock();
