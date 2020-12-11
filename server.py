@@ -16,6 +16,8 @@ import string
 import random
 from datetime import datetime
 
+import os
+
 import pandas as pd
 import numpy as np
 
@@ -30,8 +32,8 @@ import json
 ## config.toml
 
 # prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-# prefix = '/media/turritopsis/pierre/gdrive/viz'
-prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
+prefix = '/media/turritopsis/pierre/gdrive/viz'
+# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
 
@@ -43,6 +45,8 @@ def atoi(text):
 def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
+
+SERVER_PASSWORD = os.environ.get('ANIPOSE_PASSWORD', 'password')
 
 # creates a Flask application, named app
 app = Flask(__name__)
@@ -321,7 +325,7 @@ def authenticate():
     password_req = request.get_json()
     password = password_req['password']
     token = -1
-    if password == 'flyflyfly':
+    if password == SERVER_PASSWORD:
         token = generate_token(10)
         valid_tokens.add(token)
     valid = check_token(token)
