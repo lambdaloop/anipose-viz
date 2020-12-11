@@ -581,22 +581,11 @@ function updateTrial(trial) {
         updateProgressBar();
     }, 10);
 
-
-    function formatTime(milliseconds) {
-        var mseconds = Math.floor(milliseconds % 1000)
-        mseconds = mseconds.toString().substring(0, 2);
-        mseconds = (mseconds >= 10) ? mseconds : '0' + mseconds;
-        var seconds = Math.floor(milliseconds / 1000);
-        seconds = (seconds >= 10) ? seconds : '0' + seconds;
-        var minutes = Math.floor(seconds / 60);
-        minutes = (minutes >= 10) ? minutes : '0' + minutes;
-        return minutes + ':' + seconds + ':' + mseconds;
-    }
-
     setInterval(function () {
+        var video_speed = 0.2;
         var totalmseconds = Math.floor(state.videos[0].duration * 1000);
         var currentmseconds = Math.floor(state.videos[0].currentTime * 1000);
-        timer.innerHTML = formatTime(currentmseconds) + ' / ' + formatTime(totalmseconds);
+        timer.innerHTML = formatTime(currentmseconds, video_speed) + ' / ' + formatTime(totalmseconds, video_speed);
     }, 5);
     
     url = '/behavior/' + url_suffix;
@@ -617,6 +606,18 @@ function updateTrial(trial) {
                 drawActogram();
             }
         });
+}
+
+function formatTime(milliseconds, video_speed) {
+    milliseconds = video_speed * milliseconds;
+    var mseconds = Math.floor(milliseconds % 1000)
+    mseconds = mseconds.toString().substring(0, 2);
+    mseconds = (mseconds >= 10) ? mseconds : '0' + mseconds;
+    var seconds = Math.floor(milliseconds / 1000);
+    seconds = (seconds >= 10) ? seconds : '0' + seconds;
+    var minutes = Math.floor(seconds / 60);
+    minutes = (minutes >= 10) ? minutes : '0' + minutes;
+    return minutes + ':' + seconds + ':' + mseconds;
 }
 
 var video_speed = 0.2;
