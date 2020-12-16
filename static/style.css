@@ -61,6 +61,75 @@ p {
     width: 400px;
 }
 
+button#keyboardShortcutsButton {
+    width: 150px;
+    height: 22px;
+    border: none;
+    outline: none;
+    padding: 0px;
+    background-color: #181A1B;
+    font-size: 8;
+    margin-left: 2px;
+    margin-top: 10px;
+    color: white;
+}
+
+#keyboardShortcutsButton:hover {
+    color: #7B68EE;
+    border: none;
+    outline: none;
+}
+
+/* keyboard shortcut box */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 11;
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.4); 
+}
+
+/* keyboard shortcut contents */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+/* button to dismiss the keyboard shortcuts */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.key { 
+    font-family:monospace;
+    padding:1px 6px;
+    background:linear-gradient(to bottom,#f0f0f0,#fcfcfc);;
+    border:1px solid #e0e0e0;
+    white-space:nowrap; 
+    color:#303030;
+    border-bottom-width:2px;
+    border-radius:3px; 
+    font-size:14px; 
+}
+
 #renderCanvas {
     width   : 70%;
     height  : 40%;
@@ -80,7 +149,7 @@ p {
     text-align: center;
     font-size: 16px;
     color: white;
-    top: 15px;
+    top: 10px;
     right: 10px;
     width: 60px;
     height: 20px;

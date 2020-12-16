@@ -85,6 +85,24 @@ if (state.token) {
     drawButtons();
 }
 
+var modal = document.getElementById('keyboardShortcuts');
+var keyboardShortcutsButton = document.getElementById('keyboardShortcutsButton');
+var span = document.getElementsByClassName('close')[0];
+
+keyboardShortcutsButton.onclick = function() {
+  modal.style.display = 'block';
+}
+
+span.onclick = function() {
+  modal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+}
+
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');
