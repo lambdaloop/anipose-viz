@@ -89,13 +89,18 @@ if (state.token) {
 
 // var modal = document.getElementById('keyboardShortcuts');
 var keyboardShortcutsButton = document.getElementById('keyboardShortcutsButton');
-var spanClose = document.getElementsByClassName('close')[0];
+var spanLocked = document.getElementsByClassName('close')[0];
+var spanUnlocked = document.getElementsByClassName('close')[1];
 
 keyboardShortcutsButton.onclick = function() {
     state.modal.style.display = 'block';
 }
 
-spanClose.onclick = function() {
+spanLocked.onclick = function() {
+    state.modal.style.display = 'none';
+}
+
+spanUnlocked.onclick = function() {
     state.modal.style.display = 'none';
 }
 
