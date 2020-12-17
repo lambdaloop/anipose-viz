@@ -1141,7 +1141,7 @@ function translateBout(e, behaviorId) {
             manual: state.behaviors[id].manual
         };
 
-        if (bout.selected) {
+        if (bout.selected && !e.ctrlKey && !e.shiftKey) {
             switch(e.which) {
                 case 37:
                     if (state.behaviors[id].start == 0) {
