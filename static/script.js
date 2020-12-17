@@ -68,7 +68,8 @@ var state = {};
 
 state.unlocked = false;
 state.token = undefined;
-state.token = getCookie('token')
+state.token = getCookie('token');
+state.modal = document.getElementById('defaultKeyboardShortcuts')
 if (state.token) {
     var url = '/get-token/' + state.token;
     fetch(url)
@@ -77,6 +78,7 @@ if (state.token) {
             console.log(valid.valid);
             if (valid.valid) {
                 state.unlocked = true;
+                state.modal = document.getElementById('keyboardShortcuts');
                 console.log('unlocked')
             }
             drawButtons();
@@ -85,22 +87,22 @@ if (state.token) {
     drawButtons();
 }
 
-var modal = document.getElementById('keyboardShortcuts');
+// state.modal = document.getElementById('keyboardShortcuts');
 var keyboardShortcutsButton = document.getElementById('keyboardShortcutsButton');
 var span = document.getElementsByClassName('close')[0];
 
 keyboardShortcutsButton.onclick = function() {
-  modal.style.display = 'block';
+    state.modal.style.display = 'block';
 }
 
 span.onclick = function() {
-  modal.style.display = 'none';
+    state.modal.style.display = 'none';
 }
 
 window.onclick = function(event) {
-  if (event.target == modal) {
-    modal.style.display = 'none';
-  }
+    if (event.target == state.modal) {
+        state.modal.style.display = 'none';
+    }
 }
 
 window.addEventListener('DOMContentLoaded', function(){
@@ -1626,6 +1628,7 @@ function unlockEditing() {
 
 function unlock() {
     state.unlocked = true;
+    state.modal = document.getElementById('keyboardShortcuts');
     drawButtons();
     drawActogram();
 }

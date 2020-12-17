@@ -18,9 +18,27 @@
     </head>
     <body>
         <button id="keyboardShortcutsButton">keyboard shortcuts</button>
-        <div id="keyboardShortcuts" class="modal">
+        <div id="defaultKeyboardShortcuts" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
+
+                <h1>Visualization and Editing</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">'play'</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
+                    <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
+                    <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                    <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
+                </tbody>
+                </table>
+
                 <h1>Keyboard Shortcuts</h1>
                 <h3>General</h3>
                 <table>
@@ -32,9 +50,70 @@
                     </thead>
                 <tbody>
                     <tr><td>Play/Pause media</td><td><span class="key">Space</span></td></tr>
-                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">+</span> / <span class="key">-</span></td></tr>
-<!--                     <tr><td>Add temporal segment at current time</td><td><span class="key">a</span></td></tr>
-                    <tr><td>Move to previous / next video frame</td><td><span class="key">l</span> / <span class="key">r</span></td></tr> -->
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">+</span> / <span class="key">-</span></td></tr>           
+                </tbody>
+                </table>
+
+                <h3>When a Temporal Segment is Selected</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Shortcut</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause video locked to segment boundary</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Unselect temporal segment</td><td><span class="key">Esc</span></td></tr>
+                </tbody>
+                </table>
+
+                <p>&nbsp;</p>
+            </div>
+            </div>
+        </div>
+
+            </div>
+        </div>
+        <div id="keyboardShortcuts" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+
+                <h1>Visualization and Editing</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">'play'</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
+                    <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
+                    <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                    <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
+                    <tr><td>Add a temporal segment</td><td><span class="key">double click</span></td></tr>
+                    <tr><td>Translate a temporal segment</td><td><span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Resize a temporal segment</td><td><span class="key">click</span>+<span class="key">drag</span> edge</td></tr>
+                    <tr><td>Add a new behavior</td><td><span class="key">'add behavior'</span></span></td></tr>
+                    <tr><td>Remove behaviors with no temporal segments</td><td><span class="key">'clear unused behaviors'</span></span></td></tr>
+                    <tr><td>Save behavior edits</td><td><span class="key">'push changes'</span></span></td></tr>
+                </tbody>
+                </table>
+
+                <h1>Keyboard Shortcuts</h1>
+                <h3>General</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Shortcut</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">+</span> / <span class="key">-</span></td></tr>           
                 </tbody>
                 </table>
 
