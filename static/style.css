@@ -94,13 +94,32 @@ button#keyboardShortcutsButton {
     background-color: rgba(0,0,0,0.4); 
 }
 
+.modal-content table {
+    border-collapse:collapse;
+    border:1px solid #cccccc;
+}
+
+.modal-content th { 
+    border:1px solid #cccccc; 
+    padding:0.3em 0.4em; 
+}
+
+.modal-content td { 
+    border:1px solid #cccccc; 
+    padding:0.3em 0.4em; 
+}
+
+.modal-content li { 
+    margin:1em 0; 
+}
+
 /* keyboard shortcut contents */
 .modal-content {
     background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%;
+    width: 50%;
 }
 
 /* button to dismiss the keyboard shortcuts */

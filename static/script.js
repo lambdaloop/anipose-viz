@@ -87,15 +87,15 @@ if (state.token) {
     drawButtons();
 }
 
-// state.modal = document.getElementById('keyboardShortcuts');
+// var modal = document.getElementById('keyboardShortcuts');
 var keyboardShortcutsButton = document.getElementById('keyboardShortcutsButton');
-var span = document.getElementsByClassName('close')[0];
+var spanClose = document.getElementsByClassName('close')[0];
 
 keyboardShortcutsButton.onclick = function() {
     state.modal.style.display = 'block';
 }
 
-span.onclick = function() {
+spanClose.onclick = function() {
     state.modal.style.display = 'none';
 }
 
