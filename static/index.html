@@ -17,6 +17,144 @@
         <link href="/static/style.css" rel="stylesheet" />
     </head>
     <body>
+        <button id="keyboardShortcutsButton">keyboard shortcuts</button>
+        <div id="defaultKeyboardShortcuts" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+
+                <h1>Visualization and Editing</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">'play'</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
+                    <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
+                    <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                    <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
+                </tbody>
+                </table>
+
+                <h1>Keyboard Shortcuts</h1>
+                <h3>General</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Shortcut</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">+</span> / <span class="key">-</span></td></tr>           
+                </tbody>
+                </table>
+
+                <h3>When a Temporal Segment is Selected</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Shortcut</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause video locked to segment boundary</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Unselect temporal segment</td><td><span class="key">Esc</span></td></tr>
+                </tbody>
+                </table>
+
+                <p>&nbsp;</p>
+            </div>
+            </div>
+        </div>
+
+            </div>
+        </div>
+        
+        <div id="keyboardShortcuts" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+
+                <h1>Visualization and Editing</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">'play'</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
+                    <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
+                    <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                    <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
+                    <tr><td>Add a temporal segment</td><td><span class="key">double click</span></td></tr>
+                    <tr><td>Translate a temporal segment</td><td><span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Resize a temporal segment</td><td><span class="key">click</span>+<span class="key">drag</span> edge</td></tr>
+                    <tr><td>Add a new behavior</td><td><span class="key">'add behavior'</span></span></td></tr>
+                    <tr><td>Remove behaviors with no temporal segments</td><td><span class="key">'clear unused behaviors'</span></span></td></tr>
+                    <tr><td>Save behavior edits</td><td><span class="key">'push changes'</span></span></td></tr>
+                </tbody>
+                </table>
+
+                <h1>Keyboard Shortcuts</h1>
+                <h3>General</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Shortcut</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Play/Pause media</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Increase/Decrease media playback speed</td><td><span class="key">+</span> / <span class="key">-</span></td></tr>           
+                </tbody>
+                </table>
+
+                <h3>When a Temporal Segment is Selected</h3>
+                <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Shortcut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Play/Pause video locked to segment boundary</td><td><span class="key">Space</span></td></tr>
+                    <tr><td>Delete selected temporal segment</td><td><span class="key">Backspace</span></td></tr>
+                    <tr><td>Unselect temporal segment</td><td><span class="key">Esc</span></td></tr>
+                    <tr><td>Expand/Contract the left edge by one frame </td><td><span class="key">Shift</span> + <span class="key">&larr;</span> / <span class="key">&rarr;</span></td></tr>
+                    <tr><td>Expand/Contract the right edge by one frame </td><td><span class="key">Ctrl</span> + <span class="key">&larr;</span> / <span class="key">&rarr;</span></td></tr>
+                    <tr><td>Translate selected temporal segment </td><td><span class="key">&larr;</span> / <span class="key">&rarr;</span></td></tr>
+                    <tr><td>Label temporal segment as automatic/manual</td><td><span class="key">Enter</span></td></tr>
+                </tbody>
+                </table>
+
+<!--                 <h3>Spatial Regions in an Image or a Video Frame</h3>
+                <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Shortcut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Delete selected temporal region</td><td><span class="key">Backspace</span> or <span class="key">Delete</span></td></tr>
+                </tbody>
+                </table> -->
+
+                <p>&nbsp;</p>
+            </div>
+            </div>
+        </div>
+
         <div id="header">
             <div class="selectVideoContainer">
             <select id="selectSession" name="session"></select>
