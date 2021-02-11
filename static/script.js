@@ -611,6 +611,11 @@ function updateTrial(trial) {
         var totalmseconds = Math.floor(state.videos[0].duration * 1000);
         var currentmseconds = Math.floor(state.videos[0].currentTime * 1000);
         timer.innerHTML = formatTime(currentmseconds, video_speed) + ' / ' + formatTime(totalmseconds, video_speed);
+
+        var currFrame = updateFrameNumber();
+        var nFrames = state.videos[0].duration * fps
+        frameCount.innerHTML = currFrame + ' / ' + nFrames;
+
     }, 5);
     
     url = '/behavior/' + url_suffix;
@@ -711,12 +716,31 @@ function drawNextFrame(force, framenum) {
     setTimeout(drawFrame, 1000.0/fps);
 }
 
+// function getUniqueTrialBehaviors() {
+//     var uniqueTrialBehaviors = new Set();
+//     Object.keys(state.behaviors).forEach(function(id) {
+//         uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
+//     });
+//     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+//     return uniqueTrialBehaviors
+// }
+
 function getUniqueTrialBehaviors() {
     var uniqueTrialBehaviors = new Set();
+    var laser_id = undefined; 
     Object.keys(state.behaviors).forEach(function(id) {
-        uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
+        if (state.behaviors[id]['behavior'] == 'laser') {
+            laser_id = id;
+        } else {
+            uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
+        }
     });
     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+
+    if (laser_id) {
+        uniqueTrialBehaviors.unshift('laser')
+    }
+
     return uniqueTrialBehaviors
 }
 
@@ -1535,9 +1559,18 @@ function updateProgressBar() {
     var progressBar = document.getElementById('progressBar');
     // var percentage = Math.floor((100 / video.duration) * video.currentTime);
     var value = (100 / video.duration) * video.currentTime;
-    var percentage = Math.round((value + Number.EPSILON) * 1000) / 1000
+    var percentage = Math.round((value + Number.EPSILON) * 1000) / 1000;
     progressBar.value = percentage;
     progressBar.innerHTML = percentage + '% played';
+}
+
+function updateFrameNumber() {
+    var video = state.videos[0];
+    var frameRate = vid_fps/fps*slowdown;
+    var frameRate = fps;
+    var currTime = video.currentTime;
+    var currFrame = Math.floor(currTime*frameRate);
+    return currFrame
 }
 
 // Set the play position of the video based on the mouse click at x
