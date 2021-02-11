@@ -16,8 +16,6 @@ import string
 import random
 from datetime import datetime
 
-import os
-
 import pandas as pd
 import numpy as np
 
@@ -31,8 +29,8 @@ import json
 ## Calibration (with calibration.toml)
 ## config.toml
 
-# prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-prefix = '/media/turritopsis/pierre/gdrive/viz'
+prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
+# prefix = '/media/turritopsis/pierre/gdrive/viz'
 # prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
@@ -88,7 +86,7 @@ def get_folders(path):
     return sorted(folders)
 
 def generate_token(length): 
-    letters = string.ascii_letters
+    letters = string.ascii_letters + '_'
     token = ''.join(random.choice(letters) for i in range(length))
     return token
 
@@ -276,8 +274,34 @@ def get_behaviors(session, folders, filename):
         behavior_dict = json.load(json_file)
 
     behaviors = behavior_dict.get(folders, {}).get(filename, {})
+    behaviors = add_laser(behaviors, folders, filename)
 
     return jsonify(behaviors)
+
+def add_laser(behaviors, folders, filename):
+
+    if 'sec' not in filename:
+        return behaviors
+
+    pat = re.compile(r'(\d+)_fly(\d+_\d+) R(\d+)C(\d+)\s+([a-z]+)-([a-z]+)-([0-9.]+) sec')
+    names = ['date', 'fly', 'rep', 'condnum', 'type', 'dir', 'stimlen']
+    groups = pat.match(filename).groups()
+    d = dict(zip(names, groups))
+    stimlen = float(d['stimlen'])
+
+    if stimlen > 0:
+        start_frame = 150
+        end_frame = int(np.floor(start_frame + 300*stimlen))
+        laser_id = generate_token(22)
+        behaviors[laser_id] = {'filename': filename, 
+                               'folders': folders,
+                               'start': start_frame,
+                               'end': end_frame, 
+                               'bout_id': laser_id,
+                               'behavior': 'laser',
+                               'manual': True}
+
+    return behaviors
 
 def merge_behavior_changes(behavior_changes):
 
@@ -325,7 +349,7 @@ def authenticate():
     password_req = request.get_json()
     password = password_req['password']
     token = -1
-    if password == SERVER_PASSWORD:
+    if password == 'flyflyfly': # SERVER_PASSWORD:
         token = generate_token(10)
         valid_tokens.add(token)
     valid = check_token(token)
@@ -409,5 +433,5 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000)
-    # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
+    # app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
