@@ -613,7 +613,7 @@ function updateTrial(trial) {
         timer.innerHTML = formatTime(currentmseconds, video_speed) + ' / ' + formatTime(totalmseconds, video_speed);
 
         var currFrame = updateFrameNumber();
-        var nFrames = state.videos[0].duration * fps
+        var nFrames = Math.floor(state.videos[0].duration * fps)
         frameCount.innerHTML = currFrame + ' / ' + nFrames;
 
     }, 5);
