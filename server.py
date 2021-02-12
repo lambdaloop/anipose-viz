@@ -349,7 +349,7 @@ def authenticate():
     password_req = request.get_json()
     password = password_req['password']
     token = -1
-    if password == 'flyflyfly': # SERVER_PASSWORD:
+    if password == SERVER_PASSWORD:
         token = generate_token(10)
         valid_tokens.add(token)
     valid = check_token(token)
