@@ -29,8 +29,8 @@ import json
 ## Calibration (with calibration.toml)
 ## config.toml
 
-prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-# prefix = '/media/turritopsis/pierre/gdrive/viz'
+# prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
+prefix = '/media/turritopsis/pierre/gdrive/viz'
 # prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
 
 cam_regex = "Cam-? ?([A-Z])"
@@ -433,5 +433,5 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
-    # app.run(debug=False, host="0.0.0.0", port=5000)
-    app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
+    # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
