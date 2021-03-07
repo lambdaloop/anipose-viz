@@ -286,6 +286,13 @@ window.addEventListener('DOMContentLoaded', function(){
         }
     });
 
+    window.addEventListener("keydown", function(e) {
+        // up and down arrow keys
+        if (e.keyCode == 38  || e.keyCode == 40) {
+            e.preventDefault();
+        }
+    }, false);
+
 
     // state.trial = {
     //     session: "5.16.19",
@@ -826,7 +833,8 @@ function drawActogram() {
     actogram.innerHTML = '';
     console.log(state.behaviors);
     state.behaviorCanvases = {};
-    state.behaviorIds = {}
+    state.behaviorIds = {};
+    state.behaviorOrder = {};
     state.bouts = {};
     state.selectedBehavior = undefined;
     state.selectedBout = undefined;
@@ -872,8 +880,12 @@ function drawActogram() {
         state.behaviorCanvases[behaviorCanvas.id] = behaviorCanvas;
         createBehavior(behaviorId, colors2[ix%colors2.length]);
         behaviorContainer.appendChild(behaviorCanvas);
+        state.behaviorOrder[ix] = behaviorId;
+        state.behaviorOrder[behaviorId] = ix;
         ix += 1;
     });
+
+    console.log(state.behaviorOrder);
 
     var nFrames = state.videos[0].duration * fps;
     document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
@@ -938,6 +950,7 @@ function drawActogram() {
                 expandContractBout(e, behaviorId);
                 translateBout(e, behaviorId)
                 toggleAutoManual(e, behaviorId);
+                shiftBout(e, behaviorId);
             });
 
             state.behaviorCanvases[behaviorId].addEventListener('dblclick', (e) => {
@@ -1160,6 +1173,52 @@ function expandContractBout(e, behaviorId) {
     });
 }
 
+function shiftBout(e, behaviorId) {
+
+    if (!state.selectedBout) {
+        return; 
+    }
+
+    Object.keys(state.bouts[behaviorId]).forEach(function(id) {
+        console.log(state.bouts)
+        var bout = state.bouts[behaviorId][id];
+        if (bout.selected) {
+            switch(e.which) {
+
+                case 38: // up
+                    if (state.behaviorOrder[behaviorId] == 0) {
+                        break;
+                    }
+                    var currIx = state.behaviorOrder[behaviorId];
+                    var nextBehaviorId = state.behaviorOrder[currIx - 1];
+                    var start = state.behaviors[id].start;
+                    var end = state.behaviors[id].end;
+                    var newId = add(nextBehaviorId, start, end);
+                    remove(behaviorId, id, redraw = true);
+                    break;
+
+                case 40: // down
+                    console.log('down');
+                    if (state.behaviorOrder[behaviorId] == Object.keys(state.behaviorIds).length - 1) {
+                        break;
+                    }
+                    var currIx = state.behaviorOrder[behaviorId];
+                    var nextBehaviorId = state.behaviorOrder[currIx + 1];
+                    var start = state.behaviors[id].start;
+                    var end = state.behaviors[id].end;
+                    var newId = add(nextBehaviorId, start, end);
+                    remove(behaviorId, id, redraw = true);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    });
+
+}
+
+
 function translateBout(e, behaviorId) {
 
     if (!state.selectedBout) {
@@ -1269,36 +1328,42 @@ function drawButtons() {
 
 function removeBout(e, behaviorId) {
 
-    console.log(state.selectedBout)
     if (!state.selectedBout) {
         return;
     }
 
     Object.keys(state.bouts[behaviorId]).forEach(function(id) {
         var bout = state.bouts[behaviorId][id];
-        var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
         if (e.key === 'Backspace' && bout.selected) {
-            var removedBout = state.behaviors[id];
-            state.changes = {
-                id: id,
-                session: state.session,
-                old: removedBout,
-                new: {}, 
-                modification: 'removed'
-            }
-            state.behaviorChanges.push(state.changes);
-            state.redo = [];
-            delete state.behaviors[id];
-            delete state.bouts[behaviorId][id];
-            state.selectedBout = undefined;
-            state.selectedBehavior = undefined;
-            updateBehaviorState(behaviorId, state.behaviorCanvases[behaviorId].style.borderColor, rect);
-            console.log(state.behaviorChanges);
-            state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
-            drawActogram();
+            remove(behaviorId, id);
         }
     });
 }
+
+function remove(behaviorId, id, redraw = true) {
+    var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
+    var removedBout = state.behaviors[id];
+    state.changes = {
+        id: id,
+        session: state.session,
+        old: removedBout,
+        new: {}, 
+        modification: 'removed'
+    };
+    state.behaviorChanges.push(state.changes);
+    state.redo = [];
+    delete state.behaviors[id];
+    delete state.bouts[behaviorId][id];
+    state.selectedBout = undefined;
+    state.selectedBehavior = undefined;
+    updateBehaviorState(behaviorId, state.behaviorCanvases[behaviorId].style.borderColor, rect);
+    console.log(state.behaviorChanges);
+    state.uniqueTrialBehaviors = Object.values(state.behaviorIds);
+    if (redraw) {
+        drawActogram();
+    }
+}
+
 
 function addBout(e, behaviorId) {
 
@@ -1309,11 +1374,17 @@ function addBout(e, behaviorId) {
     var nFrames = state.videos[0].duration * fps;
     var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
     var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
-    var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
-
     var length = Math.floor(nFrames / 30);
     var start = Math.floor((point.x / (rect.width - 2)) * nFrames);
     var end = Math.min(start + length, nFrames);
+
+    add(behaviorId, start, end);
+    
+}
+
+function add(behaviorId, start, end) {
+
+    var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
     var newId = generateId(22);
     
     var addedBout = {
@@ -1347,6 +1418,8 @@ function addBout(e, behaviorId) {
     }
     state.behaviorChanges.push(state.changes);
     state.redo = [];
+
+    return newId;
 }
 
 
@@ -1429,6 +1502,7 @@ function updateBehaviorState(behaviorId, color, rect) {
         var nFrames = state.videos[0].duration * fps;
         var id = state.selectedBout;
         state.behaviors[id].manual = true;
+        console.log(state.selectedBout);
         state.bouts[behaviorId][state.selectedBout] = {
             bout_id: state.behaviors[id]['bout_id'],
             start: state.behaviors[id]['start'],
@@ -1443,6 +1517,7 @@ function updateBehaviorState(behaviorId, color, rect) {
             selected: true,
             manual: state.behaviors[id].manual
         };
+
     }; 
 
     var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
