@@ -1186,11 +1186,12 @@ function shiftBout(e, behaviorId) {
             switch(e.which) {
 
                 case 38: // up
-                    if (state.behaviorOrder[behaviorId] == 0) {
-                        break;
-                    }
                     var currIx = state.behaviorOrder[behaviorId];
-                    var nextBehaviorId = state.behaviorOrder[currIx - 1];
+                    if (state.behaviorOrder[behaviorId] == 0) {
+                        var nextBehaviorId = state.behaviorOrder[Object.keys(state.behaviorIds).length - 1];
+                    } else {
+                        var nextBehaviorId = state.behaviorOrder[currIx - 1];
+                    }
                     var start = state.behaviors[id].start;
                     var end = state.behaviors[id].end;
                     var newId = add(nextBehaviorId, start, end);
@@ -1198,12 +1199,12 @@ function shiftBout(e, behaviorId) {
                     break;
 
                 case 40: // down
-                    console.log('down');
-                    if (state.behaviorOrder[behaviorId] == Object.keys(state.behaviorIds).length - 1) {
-                        break;
-                    }
                     var currIx = state.behaviorOrder[behaviorId];
-                    var nextBehaviorId = state.behaviorOrder[currIx + 1];
+                    if (state.behaviorOrder[behaviorId] == Object.keys(state.behaviorIds).length - 1) {
+                        var nextBehaviorId = state.behaviorOrder[0];
+                    } else {
+                        var nextBehaviorId = state.behaviorOrder[currIx + 1];
+                    }
                     var start = state.behaviors[id].start;
                     var end = state.behaviors[id].end;
                     var newId = add(nextBehaviorId, start, end);
