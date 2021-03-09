@@ -234,6 +234,7 @@ window.addEventListener('DOMContentLoaded', function(){
     state.filterBehavior = '';
     var selectBehavior = document.getElementById("selectBehavior");
     var actogram = document.getElementById("actogram");
+    var vidlist = document.getElementById('vidlist');
     var toggle2d = document.getElementById('toggle2d');
     toggle2d.addEventListener(
         "click", function() { toggle2D(); },
@@ -446,6 +447,29 @@ function updateSession(session, state_url) {
             state.session = data.session;
             state.trials = [];
 
+            var ncams = data.folders[0].files[0].camnames.length; 
+            for (var i = 0; i < ncams; i++) {
+
+                var container = document.createElement("div");
+                container.className = "container";
+                vidlist.appendChild(container);
+
+                var video = document.createElement("video");
+                video.className = "vid";
+                video.preload = "auto";
+                video.loop = true;
+                container.appendChild(video);
+
+                var canvas = document.createElement("canvas");
+                canvas.className = "canvas";
+                container.appendChild(canvas);
+
+                if ((i + 1) % 3 == 0) {
+                    var brk = document.createElement('br');
+                    vidlist.appendChild(brk);
+                }
+            }
+
             $('#selectBehavior').empty();
             var behaviorList = $("#selectBehavior");
             behaviorList.append(new Option('', ''));
@@ -558,7 +582,6 @@ function updateTrial(trial) {
             drawFrame(true);
         });
 
-    var vidlist = document.getElementById("vidlist");
     state.videos = vidlist.querySelectorAll("video");
     state.canvases = vidlist.querySelectorAll("canvas");
     state.containers = vidlist.querySelectorAll(".container");
