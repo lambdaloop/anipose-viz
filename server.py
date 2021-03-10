@@ -245,9 +245,10 @@ def get_3d(session, folders, filename):
         vecs.append(vec)
     vecs = np.array(vecs).swapaxes(0, 1)
 
-    lengths = np.linalg.norm(vecs[:,0] - vecs[:,1], axis=1)
-    L = np.median(lengths)
-    vecs = vecs / L * 0.22;
+    m = np.mean(vecs, axis = 0)
+    std = np.std(m, axis = 0)
+    std = np.mean(std)
+    vecs = 0.3 * vecs / std
 
     return jsonify(vecs.tolist())
 
@@ -433,6 +434,9 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
+
+    cdir = os.getcwd()
+    print(cdir)
 
     app.run(debug=False, host="0.0.0.0", port=5000)
     # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
