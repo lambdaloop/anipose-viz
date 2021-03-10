@@ -757,19 +757,10 @@ function drawNextFrame(force, framenum) {
 
 function getUniqueTrialBehaviors() {
     var uniqueTrialBehaviors = new Set();
-    var laser_id = undefined; 
     Object.keys(state.behaviors).forEach(function(id) {
-        if (state.behaviors[id]['behavior'] == 'laser') {
-            laser_id = id;
-        } else {
-            uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
-        }
+        uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
     });
     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
-
-    if (laser_id) {
-        uniqueTrialBehaviors.unshift('laser')
-    }
 
     return uniqueTrialBehaviors
 }

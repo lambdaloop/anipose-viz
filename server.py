@@ -274,34 +274,34 @@ def get_behaviors(session, folders, filename):
         behavior_dict = json.load(json_file)
 
     behaviors = behavior_dict.get(folders, {}).get(filename, {})
-    behaviors = add_laser(behaviors, folders, filename)
+    # behaviors = add_laser(behaviors, folders, filename)
 
     return jsonify(behaviors)
 
-def add_laser(behaviors, folders, filename):
+# def add_laser(behaviors, folders, filename):
 
-    if 'sec' not in filename:
-        return behaviors
+#     if 'sec' not in filename:
+#         return behaviors
 
-    pat = re.compile(r'(\d+)_fly(\d+_\d+) R(\d+)C(\d+)\s+([a-z]+)-([a-z]+)-([0-9.]+) sec')
-    names = ['date', 'fly', 'rep', 'condnum', 'type', 'dir', 'stimlen']
-    groups = pat.match(filename).groups()
-    d = dict(zip(names, groups))
-    stimlen = float(d['stimlen'])
+#     pat = re.compile(r'(\d+)_fly(\d+_\d+) R(\d+)C(\d+)\s+([a-z]+)-([a-z]+)-([0-9.]+) sec')
+#     names = ['date', 'fly', 'rep', 'condnum', 'type', 'dir', 'stimlen']
+#     groups = pat.match(filename).groups()
+#     d = dict(zip(names, groups))
+#     stimlen = float(d['stimlen'])
 
-    if stimlen > 0:
-        start_frame = 150
-        end_frame = int(np.floor(start_frame + 300*stimlen))
-        laser_id = generate_token(22)
-        behaviors[laser_id] = {'filename': filename, 
-                               'folders': folders,
-                               'start': start_frame,
-                               'end': end_frame, 
-                               'bout_id': laser_id,
-                               'behavior': 'laser',
-                               'manual': True}
+#     if stimlen > 0:
+#         start_frame = 150
+#         end_frame = int(np.floor(start_frame + 300*stimlen))
+#         laser_id = generate_token(22)
+#         behaviors[laser_id] = {'filename': filename, 
+#                                'folders': folders,
+#                                'start': start_frame,
+#                                'end': end_frame, 
+#                                'bout_id': laser_id,
+#                                'behavior': 'laser',
+#                                'manual': True}
 
-    return behaviors
+#     return behaviors
 
 def merge_behavior_changes(behavior_changes):
 
@@ -433,5 +433,6 @@ def get_trials(session):
 
 # run the application
 if __name__ == "__main__":
+
     app.run(debug=False, host="0.0.0.0", port=5000)
     # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
