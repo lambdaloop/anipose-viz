@@ -62,8 +62,6 @@ var keypoints =  [
     [0.7236225508569571, -1.0205085754824648, -0.5916187610222154]]
 
 
-
-
 var state = {};
 
 state.unlocked = false;
@@ -435,6 +433,13 @@ function previousVideo() {
 
 function updateSession(session, state_url) {
 
+    state.scheme = undefined;
+    fetch('/scheme/' + session)
+        .then(response => response.json())
+        .then(data => {
+            state.scheme = data;
+        });
+
     document.getElementById('actogram').innerHTML = '';
     state.behaviorList = undefined;
     state.trials = undefined;
@@ -746,24 +751,29 @@ function drawNextFrame(force, framenum) {
     setTimeout(drawFrame, 1000.0/fps);
 }
 
-// function getUniqueTrialBehaviors() {
-//     var uniqueTrialBehaviors = new Set();
-//     Object.keys(state.behaviors).forEach(function(id) {
-//         uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
-//     });
-//     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
-//     return uniqueTrialBehaviors
-// }
-
 function getUniqueTrialBehaviors() {
     var uniqueTrialBehaviors = new Set();
     Object.keys(state.behaviors).forEach(function(id) {
         uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
     });
     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
-
     return uniqueTrialBehaviors
 }
+
+// function getUniqueTrialBehaviors() {
+//     var uniqueTrialBehaviors = new Set();
+//     var laser_id = undefined; 
+//     Object.keys(state.behaviors).forEach(function(id) {
+//         if (state.behaviors[id]['behavior'] == 'laser') {
+//             laser_id = id;
+//         } else {
+//             uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
+//         }
+//     });
+//     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+
+//     return uniqueTrialBehaviors
+// }
 
 function undo() {
     if (state.behaviorChanges.length === 0) {
@@ -1880,8 +1890,8 @@ function updateKeypoints(kps) {
     }
 
     var tubecount = 0;
-    for(var i=0; i<scheme.length; i++) {
-        var links = scheme[i];
+    for(var i=0; i<state.scheme.length; i++) {
+        var links = state.scheme[i];
         var prev = null;
         for(var j=1; j<links.length; j++) {
             var prev = kps[links[j-1]];
@@ -1944,8 +1954,8 @@ function draw2D(framenum) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         var cname = state.camnames[vidnum];
         var kps = state.data2d[cname][framenum];
-        for(var i=0; i<scheme.length; i++) {
-            var links = scheme[i];
+        for(var i=0; i<state.scheme.length; i++) {
+            var links = state.scheme[i];
             var col = colors[i];
             var path = [];
             for(var j=0; j<links.length; j++) {

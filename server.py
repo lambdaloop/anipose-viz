@@ -286,6 +286,19 @@ def get_2d_proj(session, folders, filename):
     projs = load_2d_projections(session_path, path)
     return jsonify(projs)
 
+@app.route('/scheme/<session>')
+def get_scheme(session):
+
+    config_fname = os.path.join(prefix, session, 'config.toml')
+    config = toml.load(config_fname)
+    scheme = np.array(config['labeling']['scheme'])
+    scheme_shape = np.shape(scheme)
+    scheme_flat = scheme.flatten()
+    scheme_idx = np.arange(0, len(scheme_flat), 1)
+    scheme_new = np.reshape(scheme_idx, scheme_shape).tolist()
+
+    return jsonify(scheme_new)
+
 @app.route('/behavior/<session>/<folders>/<filename>')
 def get_behaviors(session, folders, filename):
 
