@@ -29,10 +29,6 @@ import json
 ## Calibration (with calibration.toml)
 ## config.toml
 
-# prefix = '/home/pierre/data/tuthill/FicTrac Raw Data'
-prefix = '/media/turritopsis/pierre/gdrive/viz'
-# prefix = 'C:/Users/Rupp/Downloads/tuthilllab/apviz/raw_data'
-
 cam_regex = "Cam-? ?([A-Z])"
 
 valid_tokens = set()
@@ -206,6 +202,30 @@ def load_2d_projections(session_path, fname):
 
     return out
 
+def get_structure(cdir):
+
+    config_path = os.path.join(cdir, 'config.toml')
+    single_project = False
+
+    if os.path.exists(config_path):
+        prefix = os.path.dirname(cdir) 
+        single_project = True
+             
+    else: 
+        (root, dirs, files) = next(os.walk(cdir))
+        config_exists = False
+        for d in dirs:
+            if os.path.exists(os.path.join(cdir, d, 'config.toml')):
+                config_exists = True
+
+        if config_exists: 
+            prefix = cdir
+        else:
+            print('No Anipose project found. Exiting...') 
+            exit()
+
+    return prefix, single_project
+
 
 # a route where we will display a welcome message via an HTML template
 @app.route('/')
@@ -216,14 +236,17 @@ def root():
 @app.route('/get-sessions')
 def get_sessions():
     sessions = []
-    (root, dirs, files) = next(os.walk(prefix))
-    dirs = sorted(dirs, key=natural_keys)
-    for folder in dirs:
-        if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
-            sessions.append(folder)
-    # sort in reverse chronological order
-    sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
-    sessions = list(reversed(sessions))
+    if single_project:
+        sessions.append(os.path.basename(cdir))
+    else: 
+        (root, dirs, files) = next(os.walk(prefix))
+        dirs = sorted(dirs, key=natural_keys)
+        for folder in dirs:
+            if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
+                sessions.append(folder)
+        # sort in reverse chronological order
+        sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
+        sessions = list(reversed(sessions))
 
     return jsonify({
         'sessions': sessions
@@ -436,7 +459,6 @@ def get_trials(session):
 if __name__ == "__main__":
 
     cdir = os.getcwd()
-    print(cdir)
-
+    prefix, single_project = get_structure(cdir)
     app.run(debug=False, host="0.0.0.0", port=5000)
     # app.run(debug=False, threaded=False, processes=5, host="0.0.0.0", port=5000)
