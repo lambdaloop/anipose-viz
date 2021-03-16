@@ -1,13 +1,3 @@
-
-var scheme = [
-    [0, 1, 2, 3, 4], // L1A-L1E
-    [5, 6, 7, 8, 9], // L2A-L2E
-    [10, 11, 12, 13, 14], // L3A-L3E
-    [15, 16, 17, 18, 19], // R1A-R1E
-    [20, 21, 22, 23, 24], // R2A-R2E
-    [25, 26, 27, 28, 29], // R3A-R3E
-]
-
 var colors = [
     '#1f77b4',
     '#ff7f0e',
@@ -28,39 +18,6 @@ var colors2 = [
     '#C38D9E',
     '#7AE7C7'
 ]
-
-var keypoints =  [
-    [-0.005771587567940273, -0.0007108741837451582, 0.009674983999074628],
-    [0.024857184080593345, -0.15178868577443394, -0.1643735682604568],
-    [-0.22583669405471074, 0.03328422967953504, -0.137548486118793],
-    [-0.1352409171074509, -0.09543414113637194, -0.32854085042606584],
-    [-0.26592358536333904, -0.1219966697128676, -0.5370412601407795],
-    [0.03155373653371996, -0.15570749746959978, -0.0028406348963825323],
-    [0.0779122182273948, -0.2915391636822981, -0.1390409726163888],
-    [-0.2539858909480355, -0.4103590173115896, -0.01367911893225493],
-    [-0.23860050422039605, -0.5124455404612718, -0.30831775812992923],
-    [-0.4366239648998951, -0.7038454135388217, -0.5046069879949355],
-    [0.06279499342875637, -0.2970917808435227, 0.005748397685589879],
-    [0.08286802032959706, -0.4178099801213446, -0.12768985993330514],
-    [-0.1398657147016209, -0.6587741944630139, 0.07085638881752132],
-    [-0.0549972206205771, -0.7356303025029765, -0.2409572042441779],
-    [-0.18221217876961227, -0.9918946505879048, -0.4815441508612883],
-    [0.2105196191576724, -0.0039494138790017175, -0.0024736814523613764],
-    [0.21104362354566145, -0.05403537414942994, -0.2135936835383472],
-    [0.3854972730971173, 0.19330508528408474, -0.17866163110140665],
-    [0.3209534710138229, 0.23784638083025644, -0.4056217193882645],
-    [0.35151793818305604, 0.3022831063157474, -0.6972150973217737],
-    [0.15023150532382878, -0.19653579306858449, -0.019852203792366296],
-    [0.1975631902700421, -0.2616816804131967, -0.1638055084315866],
-    [0.5590360566798029, -0.17518731181723626, -0.13309516256299506],
-    [0.4387152924241455, -0.12246218013169717, -0.4238398962942647],
-    [0.4657977776881612, -0.4338012211064877, -0.5307532492016191],
-    [0.17373080906156524, -0.32121875686636914, -0.003939891859292999],
-    [0.2112417885485094, -0.3884819458340752, -0.15054991982773558],
-    [0.4793814308308484, -0.6521828381356847, -0.0899315937495917],
-    [0.5431030491067563, -0.8180886585189948, -0.3764665343913389],
-    [0.7236225508569571, -1.0205085754824648, -0.5916187610222154]]
-
 
 var state = {};
 
@@ -118,6 +75,9 @@ window.addEventListener('DOMContentLoaded', function(){
     // createScene function that creates and return the scene
     var createScene = function() {
 
+        var scheme = [[0]]
+        var keypoints = [[0,0,0]]
+
         // Create the scene space
         var scene = new BABYLON.Scene(engine);
 
@@ -166,57 +126,8 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var scale = 3;
 
-        state.spheres = [];
-
-        for(var i=0; i<keypoints.length; i++) {
-            var kp = keypoints[i];
-            // This is where you create and manipulate meshes
-            var sphere = BABYLON.MeshBuilder.CreateSphere(
-                "sphere",
-                { diameter: 0.25, updatable: true },
-                scene
-            );
-            sphere.position = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
-
-            var mat = new BABYLON.StandardMaterial("material", scene);
-            mat.ambientColor = new BABYLON.Color3(1, 1, 1);
-            sphere.material = mat;
-
-            state.spheres.push(sphere);
-        }
-
-        state.tubes = [];
-        state.paths = [];
-        for(var i=0; i<scheme.length; i++) {
-            var links = scheme[i];
-            var prev = null;
-            var col = colors[i];
-            for(var j=0; j<links.length; j++) {
-                var kp = keypoints[links[j]]
-                var vec = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
-                if(j != 0) {
-                    var path = [prev, vec];
-                    // draw limbs
-                    var tube = BABYLON.MeshBuilder.CreateTube(
-                        "tube",
-                        {path: path, radius: 0.05,
-                         sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-                         cap: BABYLON.Mesh.CAP_ALL,
-                         updatable: true},
-                        scene);
-
-                    var mat = new BABYLON.StandardMaterial("material", scene);
-                    // mat.ambientColor = new BABYLON.Color3(col[0], col[1], col[2]);
-                    mat.ambientColor = new BABYLON.Color3.FromHexString(col);
-                    tube.material = mat;
-
-                    state.tubes.push(tube);
-                    state.paths.push(path);
-                }
-                prev = vec;
-            }
-
-        }
+        drawSpheres(scene, keypoints, scale);
+        drawTubes(scene, scheme, keypoints, scale);
 
         state.scene = scene;
 
@@ -239,7 +150,7 @@ window.addEventListener('DOMContentLoaded', function(){
         false);
 
     // run the render loop
-    engine.runRenderLoop(function(){
+    engine.runRenderLoop(function() {
         scene.render();
         divFps.innerHTML = engine.getFps().toFixed() + " fps"; 
     });
@@ -438,6 +349,7 @@ function updateSession(session, state_url) {
         .then(response => response.json())
         .then(data => {
             state.scheme = data;
+
         });
 
     document.getElementById('actogram').innerHTML = '';
@@ -574,6 +486,7 @@ function updateTrial(trial) {
         .then(data => {
             console.log("pose 3d updated");
             state.data = data;
+            updateKeypoints(data[0]);
             drawFrame(true);
         });
 
@@ -1883,10 +1796,14 @@ function updateKeypoints(kps) {
     var scale = 3;
     for(var i=0; i<kps.length; i++) {
         var kp = kps[i];
-        // state.spheres[i].position = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
-        state.spheres[i].position.x = kp[0]*scale;
-        state.spheres[i].position.y = kp[1]*scale;
-        state.spheres[i].position.z = -kp[2]*scale;
+        if (!state.spheres[i]) {
+            drawSpheres(state.scene, kps, scale);
+            drawTubes(state.scene, state.scheme, kps, scale);
+        } else {
+            state.spheres[i].position.x = kp[0]*scale;
+            state.spheres[i].position.y = kp[1]*scale;
+            state.spheres[i].position.z = -kp[2]*scale;
+        }
     }
 
     var tubecount = 0;
@@ -1909,10 +1826,65 @@ function updateKeypoints(kps) {
                 {path: state.paths[tubecount],
                  instance: state.tubes[tubecount]});
             tubecount++;
-
         }
     }
+}
 
+function drawSpheres(scene, keypoints, scale) { 
+
+    state.spheres = [];
+
+    for(var i=0; i<keypoints.length; i++) {
+        var kp = keypoints[i];
+        // This is where you create and manipulate meshes
+        var sphere = BABYLON.MeshBuilder.CreateSphere(
+            "sphere",
+            { diameter: 0.25, updatable: true },
+            scene
+        );
+        sphere.position = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
+
+        var mat = new BABYLON.StandardMaterial("material", scene);
+        mat.ambientColor = new BABYLON.Color3(1, 1, 1);
+        sphere.material = mat;
+
+        state.spheres.push(sphere);
+    }
+}
+
+function drawTubes(scene, scheme, keypoints, scale) {
+
+    state.tubes = [];
+    state.paths = [];
+    for(var i=0; i<scheme.length; i++) {
+        var links = scheme[i];
+        var prev = null;
+        var col = colors[i];
+        for(var j=0; j<links.length; j++) {
+            var kp = keypoints[links[j]]
+            var vec = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
+            if(j != 0) {
+                var path = [prev, vec];
+                // draw limbs
+                var tube = BABYLON.MeshBuilder.CreateTube(
+                    "tube",
+                    {path: path, radius: 0.05,
+                     sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+                     cap: BABYLON.Mesh.CAP_ALL,
+                     updatable: true},
+                    scene);
+
+                var mat = new BABYLON.StandardMaterial("material", scene);
+                // mat.ambientColor = new BABYLON.Color3(col[0], col[1], col[2]);
+                mat.ambientColor = new BABYLON.Color3.FromHexString(col);
+                tube.material = mat;
+
+                state.tubes.push(tube);
+                state.paths.push(path);
+            }
+            prev = vec;
+        }
+    }
 }
 
 function drawPath(ctx, path, color) {
