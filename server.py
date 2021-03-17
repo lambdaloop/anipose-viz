@@ -244,9 +244,7 @@ def get_sessions():
         for folder in dirs:
             if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
                 sessions.append(folder)
-        # sort in reverse chronological order
-        sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
-        sessions = list(reversed(sessions))
+        sessions = sorted(sessions)
 
     return jsonify({
         'sessions': sessions
