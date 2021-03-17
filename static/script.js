@@ -586,6 +586,31 @@ function updateTrial(trial) {
         });
 }
 
+function downloadBehaviors() {
+
+    var url = '/download-behavior/' + state.session;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            download(data);
+        });
+}
+
+function download(data) {
+    var behaviors_json = new Blob(
+        [JSON.stringify(data)], 
+        {type: 'text/json;charset=utf-8'}
+    );
+    var session_name = state.session.split('.').join('');
+    var url = URL.createObjectURL(behaviors_json);
+    var anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.target = '_blank';
+    anchor.download = 'behaviors_' + session_name + '.json';
+    anchor.click();
+    URL.revokeObjectURL(url);
+}
+
 function formatTime(milliseconds, video_speed) {
     milliseconds = video_speed * milliseconds;
     var mseconds = Math.floor(milliseconds % 1000)

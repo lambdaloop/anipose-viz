@@ -211,6 +211,19 @@ button#unlock {
     overflow: auto;
 }
 
+button#download {
+    width: 15%;
+    height: 22px;
+    margin-left: 5px;
+    margin-right: 0px;
+    margin-top: 5px;
+    border: 1px solid white;
+    padding: 0px;
+    background-color: black;
+    color: white;
+    overflow: auto;
+}
+
 button#addBehavior {
     width: 15%;
     height: 22px;

@@ -413,6 +413,19 @@ def update_behaviors():
         updated_behaviors = merge_behavior_changes(behavior_changes)
     return updated_behaviors
 
+@app.route('/download-behavior/<session>')
+def download_behaviors(session):
+    session_path = safe_join(prefix, session)
+    path = safe_join(session_path, 'behaviors.json')
+    print(path)
+    if not os.path.exists(path):
+        return jsonify([])
+    
+    with open(path) as json_file:
+        behaviors = json.load(json_file)
+
+    return jsonify(behaviors)
+
 @app.route('/video/<session>/<folders>/<filename>')
 def get_video(session, folders, filename):
     print(session, folders, filename)
