@@ -29,8 +29,6 @@ import json
 ## Calibration (with calibration.toml)
 ## config.toml
 
-cam_regex = "Cam-? ?([A-Z])"
-
 valid_tokens = set()
 
 def atoi(text):
@@ -150,6 +148,13 @@ def get_unique_behaviors(session_path):
     session_behaviors = list(session_behaviors)
     return session_behaviors, trial_behaviors
 
+def get_cam_regex(session):
+
+    config_fname = os.path.join(prefix, session, 'config.toml')
+    config = toml.load(config_fname)
+    cam_regex = config['triangulation']['cam_regex']
+    return cam_regex
+
 def load_2d_projections(session_path, fname):
     calib_fname = os.path.join(session_path, "Calibration", "calibration.toml")
     cgroup = CameraGroup.load(calib_fname)
@@ -244,6 +249,10 @@ def get_sessions():
         for folder in dirs:
             if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
                 sessions.append(folder)
+
+        # sort in reverse chronological order
+        # sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
+        # sessions = list(reversed(sessions))
         sessions = sorted(sessions)
 
     return jsonify({
@@ -433,7 +442,8 @@ def get_video(session, folders, filename):
     print(path, filename + '.mp4')
     return send_from_directory(path, filename + '.mp4')
 
-def group_by_trial(fnames, cam_regex):
+def group_by_trial(fnames, session):
+    cam_regex = get_cam_regex(session)
     cam_videos = defaultdict(list)
     for fname in fnames:
         name = get_video_name(cam_regex, fname)
@@ -462,7 +472,7 @@ def get_trials(session):
         if len(fnames) == 0:
             continue
         fnames = sorted(fnames, key=natural_keys)
-        fnames = group_by_trial(fnames, cam_regex)
+        fnames = group_by_trial(fnames, session)
         d = {
             'folder': '|'.join(key),
             'files': fnames
