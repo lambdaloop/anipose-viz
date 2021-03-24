@@ -10,6 +10,7 @@ from flask_ipban import IpBan
 
 from glob import glob
 import os
+from pathlib import Path
 from collections import deque, defaultdict
 import re
 import string
@@ -149,18 +150,20 @@ def get_unique_behaviors(session_path):
     return session_behaviors, trial_behaviors
 
 def get_cam_regex(session):
-
     config_fname = os.path.join(prefix, session, 'config.toml')
+    config_fname = os.path.normpath(config_fname)
     config = toml.load(config_fname)
     cam_regex = config['triangulation']['cam_regex']
     return cam_regex
 
 def load_2d_projections(session_path, fname):
-    calib_fname = os.path.join(session_path, "Calibration", "calibration.toml")
-    cgroup = CameraGroup.load(calib_fname)
 
-    config_fname = os.path.join(session_path, "config.toml")
-    config = toml.load(config_fname)
+    calib_fname = os.path.join(session_path, "Calibration", "calibration.toml")
+    cgroup = CameraGroup.load(os.path.normpath(calib_fname))
+
+    p = Path(session_path)
+    config_fname = os.path.join(p.parent.absolute(), "config.toml")
+    config = toml.load(os.path.normpath(config_fname))
 
     data = pd.read_csv(fname)
 
@@ -192,7 +195,8 @@ def load_2d_projections(session_path, fname):
 
     # points_2d_proj = points_2d_proj.swapaxes(0, 1)
     cam_names = cgroup.get_names()
-    offsets = [config['cameras'][name]['offset'] for name in cam_names]
+    # offsets = [config['cameras'][name]['offset'] for name in cam_names]
+    offsets = [config.get('cameras', {}).get(name, {}).get('offset', [0,0]) for name in cam_names]
 
     for i in range(n_cams):
         dx = offsets[i][0]
@@ -264,6 +268,7 @@ def get_3d(session, folders, filename):
     folders = folders.split('|')
     path = safe_join(prefix, session, *folders)
     path = safe_join(path, 'pose-3d', filename + '.csv')
+    path = os.path.normpath(path)
     data = pd.read_csv(path)
 
     cols = [x for x in data.columns if '_error' in x]
@@ -273,24 +278,30 @@ def get_3d(session, folders, filename):
     for bp in bodyparts:
         vec = np.array(data[[bp+'_x', bp+'_y', bp+'_z']])
         vecs.append(vec)
+    print(vecs)
     vecs = np.array(vecs).swapaxes(0, 1)
+    print(vecs)
 
     m = np.mean(vecs, axis = 0)
     std = np.std(m, axis = 0)
     std = np.mean(std)
     vecs = 0.3 * vecs / std
 
+    print(vecs)
+
     return jsonify(vecs.tolist())
 
 @app.route('/pose2dproj/<session>/<folders>/<filename>')
 def get_2d_proj(session, folders, filename):
 
+    # fix
     folders = folders.split('|')
-    session_path = safe_join(prefix, session)
-    path = safe_join(session_path, *folders)
-    path = safe_join(path, 'pose-3d', filename + '.csv')
+    path = safe_join(prefix, session, *folders)
+    #path = os.path.normpath(path)
+    fname = safe_join(path, 'pose-3d', filename + '.csv')
+    #fname = os.path.normpath(fname)
 
-    projs = load_2d_projections(session_path, path)
+    projs = load_2d_projections(path, fname)
     return jsonify(projs)
 
 @app.route('/scheme/<session>')
@@ -298,11 +309,15 @@ def get_scheme(session):
 
     config_fname = os.path.join(prefix, session, 'config.toml')
     config = toml.load(config_fname)
-    scheme = np.array(config['labeling']['scheme'])
-    scheme_shape = np.shape(scheme)
-    scheme_flat = scheme.flatten()
-    scheme_idx = np.arange(0, len(scheme_flat), 1)
-    scheme_new = np.reshape(scheme_idx, scheme_shape).tolist()
+    scheme = np.array(config['labeling']['scheme'], dtype = object)
+
+    idx = 0
+    scheme_new = []
+    for j in range(len(scheme)):
+        kps = scheme[j]
+        kps_idx = np.arange(idx, idx + len(kps), 1).tolist()
+        scheme_new.append(kps_idx)
+        idx = idx + len(kps)
 
     return jsonify(scheme_new)
 
