@@ -23,6 +23,9 @@
                 <span class="close">&times;</span>
 
                 <h1>Visualization and Editing</h1>
+
+                <h1>Visualization and Temporal labels</h1>
+                <h3>Videos</h3>
                 <table>
                     <thead>
                         <tr>
@@ -35,6 +38,33 @@
                     <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
                     <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
                     <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                </tbody>
+                </table>
+
+                <h3>3D model</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Rotate model</td><td><span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Translate model</td><td><span class="key">ctrl</span>+<span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Zoom in/out on model</td><td><span class="key">scroll up</span> / <span class="key">scroll down</span></td></tr>
+                </tbody>
+                </table>
+
+                <h3>Temporal labels</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
                     <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
                 </tbody>
                 </table>
@@ -80,7 +110,8 @@
             <div class="modal-content">
                 <span class="close">&times;</span>
 
-                <h1>Visualization and Editing</h1>
+                <h1>Visualization and Temporal labels</h1>
+                <h3>Videos</h3>
                 <table>
                     <thead>
                         <tr>
@@ -93,6 +124,33 @@
                     <tr><td>Increase/Decrease media playback speed</td><td><span class="key">'speed up'</span> / <span class="key">'slow down'</span></td></tr>
                     <tr><td>Load the previous/next video</td><td><span class="key">'previous'</span> / <span class="key">'next'</span></td></tr>
                     <tr><td>Toggle 2d tracking</td><td><span class="key">'hide 2d'</span> / <span class="key">'display 2d'</span></td></tr>
+                </tbody>
+                </table>
+
+                <h3>3D model</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    <tr><td>Rotate model</td><td><span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Translate model</td><td><span class="key">ctrl</span>+<span class="key">click</span>+<span class="key">drag</span></td></tr>
+                    <tr><td>Zoom in/out on model</td><td><span class="key">scroll up</span> / <span class="key">scroll down</span></td></tr>
+                </tbody>
+                </table>
+
+                <h3>Temporal labels</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                <tbody>
                     <tr><td>Select a temporal segment</td><td><span class="key">click</span></td></tr>
                     <tr><td>Add a temporal segment</td><td><span class="key">double click</span></td></tr>
                     <tr><td>Translate a temporal segment</td><td><span class="key">click</span>+<span class="key">drag</span></td></tr>
@@ -201,9 +259,6 @@
             <button id="toggle2d"></button></button>
         </div>
         <div id="vidlist"></div></div>
-        <p class="instructions white">
-            For 3D: Drag to rotate. CTRL+drag to translate. Scroll to zoom.
-        </p>
         <canvas id="renderCanvas"></canvas>
         <script src="/static/script.js"></script>
         <div id="fps">0</div>
