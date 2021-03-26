@@ -10,7 +10,6 @@ from flask_ipban import IpBan
 
 from glob import glob
 import os
-from pathlib import Path
 from collections import deque, defaultdict
 import re
 import string
@@ -79,6 +78,23 @@ def get_video_fnames(session_path):
 def get_folders(path):
     folders = next(os.walk(path))[1]
     return sorted(folders)
+
+def find_calibration_folder(config, session_path):
+    print('sp', session_path)
+    pipeline_calibration_videos = config['pipeline']['calibration_videos']
+    nesting = config['nesting']
+
+    # TODO: fix this for nesting = -1
+    level = nesting
+    curpath = session_path
+
+    while level >= 0:
+        checkpath = os.path.join(curpath, pipeline_calibration_videos)
+        if os.path.isdir(checkpath):
+            return curpath
+
+        curpath = os.path.dirname(curpath)
+        level -= 1
 
 def generate_token(length): 
     letters = string.ascii_letters + '_'
@@ -156,14 +172,16 @@ def get_cam_regex(session):
     cam_regex = config['triangulation']['cam_regex']
     return cam_regex
 
-def load_2d_projections(session_path, fname):
+def load_2d_projections(session_path, folders, fname):
 
-    calib_fname = os.path.join(session_path, "Calibration", "calibration.toml")
-    cgroup = CameraGroup.load(os.path.normpath(calib_fname))
-
-    p = Path(session_path)
-    config_fname = os.path.join(p.parent.absolute(), "config.toml")
+    config_fname = os.path.join(session_path, "config.toml")
     config = toml.load(os.path.normpath(config_fname))
+
+    pipeline_calibration_videos = config['pipeline']['calibration_videos']
+    search_path = os.path.normpath(os.path.join(session_path, *folders))
+    calib_folder = find_calibration_folder(config, search_path) 
+    calib_fname = os.path.join(calib_folder, pipeline_calibration_videos, "calibration.toml")
+    cgroup = CameraGroup.load(os.path.normpath(calib_fname))
 
     data = pd.read_csv(fname)
 
@@ -278,30 +296,23 @@ def get_3d(session, folders, filename):
     for bp in bodyparts:
         vec = np.array(data[[bp+'_x', bp+'_y', bp+'_z']])
         vecs.append(vec)
-    print(vecs)
+
     vecs = np.array(vecs).swapaxes(0, 1)
-    print(vecs)
-
-    m = np.mean(vecs, axis = 0)
-    std = np.std(m, axis = 0)
-    std = np.mean(std)
+    m = np.nanmean(vecs, axis = 0)
+    std = np.nanstd(m, axis = 0)
+    std = np.nanmean(std)
     vecs = 0.3 * vecs / std
-
-    print(vecs)
 
     return jsonify(vecs.tolist())
 
 @app.route('/pose2dproj/<session>/<folders>/<filename>')
 def get_2d_proj(session, folders, filename):
 
-    # fix
     folders = folders.split('|')
-    path = safe_join(prefix, session, *folders)
-    #path = os.path.normpath(path)
-    fname = safe_join(path, 'pose-3d', filename + '.csv')
-    #fname = os.path.normpath(fname)
+    path = os.path.normpath(safe_join(prefix, session))
+    fname = safe_join(path, *folders, 'pose-3d', filename + '.csv')
 
-    projs = load_2d_projections(path, fname)
+    projs = load_2d_projections(path, folders, fname)
     return jsonify(projs)
 
 @app.route('/scheme/<session>')
