@@ -226,16 +226,17 @@
             <select id="selectVideo" name="video"></select>
             <button id="nextVideo" onclick="nextVideo()">next</button>
         </div>
-        <div id="speedButtons" class="buttons">
-            <button id="slowdown" onclick="slowdownVideo()">slow down</button>
-            <button id="speedup" onclick="speedupVideo()">speed up</button>
-            <span id="speed" class="white">slowed 10x</span>
-        </div>
-        <div>
-            <span id="frameCount" class='white'>0 / 0</span> 
-        </div>
-        <div>
-            <span id="timer" class='white'>00:00:00 / 00:00:00</span> 
+        <div id="toolbox">
+            <div id="speedButtons">
+                <button id="toggle2d"></button></button>
+                <button id="slowdown" onclick="slowdownVideo()">slow down</button>
+                <button id="speedup" onclick="speedupVideo()">speed up</button>
+                <span id="speed" class="white">slowed 10x</span>
+            </div>
+            <div id="videoTime">
+                <span id="frameCount" class='time'>0 / 0</span>
+                <span id="timer" class='time'>00:00:00 / 00:00:00</span>
+            </div>
         </div>
         <div id="playButtons">
             <button id="play" onclick="togglePlayPause();">play</button>
@@ -255,11 +256,12 @@
             <button id="redo" onclick="redo()">redo edit</button></button>
             <button id="clearUnusedBehavior" onclick="clearUnusedBehavior()">clear unused behavior</button></button>
         </div>
-        <div>
-            <button id="toggle2d"></button></button>
+        <div id = "videoContainer" class = "ncontainer">
+            <div id="vidlist" class = "vcontainer"></div></div>
         </div>
-        <div id="vidlist"></div></div>
+        <!-- <div id = "modelContainer" class = "container"> -->
         <canvas id="renderCanvas"></canvas>
+        <!-- </div> -->
         <script src="/static/script.js"></script>
         <div id="fps">0</div>
 

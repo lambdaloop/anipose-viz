@@ -39,11 +39,29 @@ p {
     text-align: left;
 }
 
-#toggle2d {
+/*#toggle2d {
     width: 200px;
     display: block;
     margin: 0 auto;
     margin-top: 10px;
+}*/
+
+#toolbox {
+    display: flex;
+    margin-top: 10px;
+}
+
+#speedButtons {
+    float: left;
+    width: 50%;
+    margin-left: 5px;
+}
+
+#videoTime {
+    text-align: right;
+    float: right;
+    width: 50%;
+    margin-top: 5px;
 }
 
 #timer {
@@ -54,6 +72,10 @@ p {
     margin-left: 5px;
 }
 
+.time {
+    margin-right: 15px;
+    color: white;
+}
 
 .seek {
     display: block;
@@ -403,7 +425,7 @@ button:hover {
 
 progress#progressBar {
     display: block;
-    width: 80%;
+    width: 83%;
     float: left;
     height: 22px;
     border: 1px solid #777;

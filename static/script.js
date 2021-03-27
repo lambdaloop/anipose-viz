@@ -484,8 +484,10 @@ function updateTrial(trial) {
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            console.log(data)
             console.log("pose 3d updated");
             state.data = data;
+            state.data3d_loaded = true;
             updateKeypoints(data[0]);
             drawFrame(true);
         });
@@ -630,6 +632,7 @@ var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
 var playing = false;
+state.data3d_loaded = false;
 var display2d = true;
 var prev_num = 0;
 
@@ -651,6 +654,8 @@ function drawFrame(force) {
     // if(Math.abs(ft - framenum) > 5) {
     //     framenum = ft;
     // }
+
+    if (!state.data3d_loaded) return;
 
     framenum = Math.round(ft+1);
     var nFrames = state.videos[0].duration * fps
