@@ -80,7 +80,6 @@ def get_folders(path):
     return sorted(folders)
 
 def find_calibration_folder(config, session_path):
-    print('sp', session_path)
     pipeline_calibration_videos = config['pipeline']['calibration_videos']
     nesting = config['nesting']
 
@@ -272,9 +271,6 @@ def get_sessions():
             if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
                 sessions.append(folder)
 
-        # sort in reverse chronological order
-        # sessions = sorted(sessions, key=lambda x: datetime.strptime(x, '%m.%d.%y'))
-        # sessions = list(reversed(sessions))
         sessions = sorted(sessions)
 
     return jsonify({
@@ -450,7 +446,6 @@ def update_behaviors():
 def download_behaviors(session):
     session_path = safe_join(prefix, session)
     path = safe_join(session_path, 'behaviors.json')
-    print(path)
     if not os.path.exists(path):
         return jsonify([])
     
