@@ -177,19 +177,6 @@ button#keyboardShortcutsButton {
     font-size:14px; 
 }
 
-/*#renderCanvas {
-    width   : 70%;
-    height  : 40%;
-    max-width: 440px;
-    max-height: 440px;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    touch-action: none;
-}*/
-
 #renderCanvas {
     width: 99%;
     height: 95%;
