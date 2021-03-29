@@ -256,12 +256,14 @@
             <button id="redo" onclick="redo()">redo edit</button></button>
             <button id="clearUnusedBehavior" onclick="clearUnusedBehavior()">clear unused behavior</button></button>
         </div>
-        <div id = "videoContainer" class = "ncontainer">
-            <div id="vidlist" class = "vcontainer"></div></div>
+        <div id = 'viz'>
+            <div id = "videoContainer" class = "ncontainer">
+                <div id="vidlist" class = "ncontainer"></div>
+            </div>
+            <div id = "modelContainer" class = "ncontainer">
+                <canvas id="renderCanvas"></canvas>
+            </div>
         </div>
-        <!-- <div id = "modelContainer" class = "container"> -->
-        <canvas id="renderCanvas"></canvas>
-        <!-- </div> -->
         <script src="/static/script.js"></script>
         <div id="fps">0</div>
 

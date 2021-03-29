@@ -380,11 +380,6 @@ function updateSession(session, state_url) {
                 var canvas = document.createElement("canvas");
                 canvas.className = "canvas";
                 container.appendChild(canvas);
-
-                if ((i + 1) % 3 == 0) {
-                    var brk = document.createElement('br');
-                    vidlist.appendChild(brk);
-                }
             }
 
             $('#selectBehavior').empty();
@@ -487,7 +482,7 @@ function updateTrial(trial) {
             console.log(data)
             console.log("pose 3d updated");
             state.data = data;
-            state.data3d_loaded = true;
+            // state.data3d_loaded = true;
             updateKeypoints(data[0]);
             drawFrame(true);
         });
@@ -632,7 +627,7 @@ var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
 var playing = false;
-state.data3d_loaded = false;
+// state.data3d_loaded = false;
 var display2d = true;
 var prev_num = 0;
 
@@ -655,7 +650,7 @@ function drawFrame(force) {
     //     framenum = ft;
     // }
 
-    if (!state.data3d_loaded) return;
+    // if (!state.data3d_loaded) return;
 
     framenum = Math.round(ft+1);
     var nFrames = state.videos[0].duration * fps

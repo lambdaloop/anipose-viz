@@ -177,7 +177,7 @@ button#keyboardShortcutsButton {
     font-size:14px; 
 }
 
-#renderCanvas {
+/*#renderCanvas {
     width   : 70%;
     height  : 40%;
     max-width: 440px;
@@ -188,7 +188,59 @@ button#keyboardShortcutsButton {
     margin-right: auto;
     display: block;
     touch-action: none;
+}*/
+
+#renderCanvas {
+    width: 99%;
+    height: 95%;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: 0px;
+    margin-bottom: auto;
+    margin-top: auto;
+    display: block;
+    touch-action: none;
+    text-align: center;
 }
+
+#modelContainer {
+    float: right;
+    width: 35%;
+    padding-left: 0;
+    padding-right: 0;
+    margin: auto;
+    margin-right: 5px;
+    display: block;
+    touch-action: none;
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+#videoContainer {
+    float: left;
+    width: 65%;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    touch-action: none;
+    flex: 1 1 auto;
+}
+
+#viz {
+    display: flex;
+    height: 40%;
+}
+
+.ncontainer {
+    position: relative;
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+}
+
 #fps {
     position: absolute;
     background-color: black;
@@ -355,7 +407,7 @@ video {
     margin-left: auto;
     margin-right: auto;
     margin-top: 15px;
-    width: 95%;
+    width: 99%;
     text-align: center;
 }
 .buttons {
@@ -386,6 +438,7 @@ video {
     display: inline-block;
     padding: 0;
     margin: 0;
+    flex: 1 1 auto;
 }
 .behaviorContainer {
     max-height: 30px
