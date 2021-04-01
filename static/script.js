@@ -598,7 +598,7 @@ function download(data) {
         [JSON.stringify(data)], 
         {type: 'text/json;charset=utf-8'}
     );
-    var session_name = state.session.split('.').join('');
+    var session_name = state.session;
     var url = URL.createObjectURL(behaviors_json);
     var anchor = document.createElement('a');
     anchor.href = url;
