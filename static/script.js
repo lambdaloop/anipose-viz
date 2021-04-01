@@ -1879,6 +1879,8 @@ function drawSpheres(scene, keypoints, scale) {
 
 function drawTubes(scene, scheme, keypoints, scale) {
 
+    console.log(keypoints);
+    console.log(scheme);
     state.tubes = [];
     state.paths = [];
     for(var i=0; i<scheme.length; i++) {
@@ -1887,6 +1889,7 @@ function drawTubes(scene, scheme, keypoints, scale) {
         var col = colors[i];
         for(var j=0; j<links.length; j++) {
             var kp = keypoints[links[j]]
+            console.log(kp)
             var vec = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
             if(j != 0) {
                 var path = [prev, vec];

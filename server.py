@@ -318,13 +318,22 @@ def get_scheme(session):
     config = toml.load(config_fname)
     scheme = np.array(config['labeling']['scheme'], dtype = object)
 
-    idx = 0
+    kps = {}
+    ix = 0
+    for i in range(len(scheme)):
+        for j in range(len(scheme[i])):
+            if scheme[i][j] not in kps:
+                kps[scheme[i][j]] = ix
+                ix = ix + 1
+
+    ix = 0
     scheme_new = []
-    for j in range(len(scheme)):
-        kps = scheme[j]
-        kps_idx = np.arange(idx, idx + len(kps), 1).tolist()
-        scheme_new.append(kps_idx)
-        idx = idx + len(kps)
+    for i in range(len(scheme)):
+        kps_ix = np.zeros(len(scheme[i]), dtype = int)
+        for j in range(len(scheme[i])):
+            keypoint = scheme[i][j]
+            kps_ix[j] = kps[keypoint]
+        scheme_new.append(kps_ix.tolist())
 
     return jsonify(scheme_new)
 
