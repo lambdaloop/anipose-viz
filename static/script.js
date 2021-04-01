@@ -75,8 +75,8 @@ window.addEventListener('DOMContentLoaded', function(){
     // createScene function that creates and return the scene
     var createScene = function() {
 
-        var scheme = [[0]]
-        var keypoints = [[0,0,0]]
+        var scheme = undefined
+        var keypoints = undefined;
 
         // Create the scene space
         var scene = new BABYLON.Scene(engine);
@@ -482,7 +482,6 @@ function updateTrial(trial) {
             console.log(data)
             console.log("pose 3d updated");
             state.data = data;
-            // state.data3d_loaded = true;
             updateKeypoints(data[0]);
             drawFrame(true);
         });
@@ -603,7 +602,7 @@ function download(data) {
     var anchor = document.createElement('a');
     anchor.href = url;
     anchor.target = '_blank';
-    anchor.download = 'behaviors_' + session_name + '.json';
+    anchor.download = session_name + '_behaviors.json';
     anchor.click();
     URL.revokeObjectURL(url);
 }
@@ -622,12 +621,11 @@ function formatTime(milliseconds, video_speed) {
 
 var video_speed = 0.2;
 var vid_fps = 60.0;
-var slowdown = 0.5;
+var slowdown = 1 // 0.5;
 var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
 var playing = false;
-// state.data3d_loaded = false;
 var display2d = true;
 var prev_num = 0;
 
@@ -649,8 +647,6 @@ function drawFrame(force) {
     // if(Math.abs(ft - framenum) > 5) {
     //     framenum = ft;
     // }
-
-    // if (!state.data3d_loaded) return;
 
     framenum = Math.round(ft+1);
     var nFrames = state.videos[0].duration * fps
@@ -1818,10 +1814,15 @@ function updateSpeedText() {
 }
 
 function updateKeypoints(kps) {
+
+    if (!kps) {
+        return;
+    }
+
     var scale = 3;
     for(var i=0; i<kps.length; i++) {
         var kp = kps[i];
-        if (!state.spheres[i]) {
+        if (!state.spheres) {
             drawSpheres(state.scene, kps, scale);
             drawTubes(state.scene, state.scheme, kps, scale);
         } else {
@@ -1857,6 +1858,10 @@ function updateKeypoints(kps) {
 
 function drawSpheres(scene, keypoints, scale) { 
 
+    if (!keypoints) {
+        return;
+    }
+
     state.spheres = [];
 
     for(var i=0; i<keypoints.length; i++) {
@@ -1879,8 +1884,10 @@ function drawSpheres(scene, keypoints, scale) {
 
 function drawTubes(scene, scheme, keypoints, scale) {
 
-    console.log(keypoints);
-    console.log(scheme);
+    if (!keypoints) {
+        return;
+    }
+
     state.tubes = [];
     state.paths = [];
     for(var i=0; i<scheme.length; i++) {
@@ -1889,7 +1896,6 @@ function drawTubes(scene, scheme, keypoints, scale) {
         var col = colors[i];
         for(var j=0; j<links.length; j++) {
             var kp = keypoints[links[j]]
-            console.log(kp)
             var vec = new BABYLON.Vector3(kp[0]*scale, kp[1]*scale, -kp[2]*scale);
             if(j != 0) {
                 var path = [prev, vec];

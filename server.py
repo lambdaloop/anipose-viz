@@ -212,7 +212,6 @@ def load_2d_projections(session_path, folders, fname):
 
     # points_2d_proj = points_2d_proj.swapaxes(0, 1)
     cam_names = cgroup.get_names()
-    # offsets = [config['cameras'][name]['offset'] for name in cam_names]
     offsets = [config.get('cameras', {}).get(name, {}).get('offset', [0,0]) for name in cam_names]
 
     for i in range(n_cams):
