@@ -294,10 +294,13 @@ def get_3d(session, folders, filename):
 
     vecs = np.array(vecs).swapaxes(0, 1)
     m = np.nanmean(vecs, axis = 0)
-    std = np.nanstd(m, axis = 0)
-    std = np.nanmean(std)
+    std = np.nanmean(np.nanstd(m, axis = 0))
     vecs = 0.3 * vecs / std
+    
+    cm = np.nanmean(np.nanmean(vecs, axis = 1), axis = 0)
+    vecs = vecs - cm
     vecs[~np.isfinite(vecs)] = 0
+
     return jsonify(vecs.tolist())
 
 @app.route('/pose2dproj/<session>/<folders>/<filename>')
