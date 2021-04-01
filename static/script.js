@@ -621,7 +621,7 @@ function formatTime(milliseconds, video_speed) {
 
 var video_speed = 0.2;
 var vid_fps = 60.0;
-var slowdown = 1 // 0.5;
+var slowdown =  0.5;
 var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
