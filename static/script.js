@@ -156,7 +156,7 @@ window.addEventListener('DOMContentLoaded', function(){
     });
 
     // the canvas/window resize event handler
-    window.addEventListener('resize', function(){
+    window.addEventListener('resize', function() {
         engine.resize();
     });
 
@@ -282,6 +282,7 @@ window.addEventListener('DOMContentLoaded', function(){
     });
 
     updateSpeedText();
+
 });
 
 function matcher(params, data) {
@@ -425,7 +426,7 @@ function updateSession(session, state_url) {
             }
 
             updateTrial(state.trials[key]);
-            list.val(key);
+            list.val(key);;
 
         });
 
@@ -621,7 +622,7 @@ function formatTime(milliseconds, video_speed) {
 
 var video_speed = 0.2;
 var vid_fps = 60.0;
-var slowdown =  0.5;
+var slowdown = 0.5;
 var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;

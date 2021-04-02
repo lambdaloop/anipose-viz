@@ -178,8 +178,8 @@ button#keyboardShortcutsButton {
 }
 
 #renderCanvas {
-    width: 99%;
-    height: 95%;
+    width: 100%;
+    height: 100%;
     padding-left: 0;
     padding-right: 0;
     margin-left: auto;
@@ -196,8 +196,8 @@ button#keyboardShortcutsButton {
     width: 35%;
     padding-left: 0;
     padding-right: 0;
-    margin: auto;
-    margin-right: 5px;
+    margin-top: 15px;
+    margin-right: 15px;
     display: block;
     touch-action: none;
     text-align: center;
