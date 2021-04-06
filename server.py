@@ -80,7 +80,8 @@ def get_folders(path):
     return sorted(folders)
 
 def find_calibration_folder(config, session_path):
-    pipeline_calibration_videos = config['pipeline']['calibration_videos']
+
+    pipeline_calibration_videos = config.get('pipeline', {}).get('calibration_videos', 'calibration')
     nesting = config['nesting']
 
     # TODO: fix this for nesting = -1
@@ -176,7 +177,7 @@ def load_2d_projections(session_path, folders, fname):
     config_fname = os.path.join(session_path, "config.toml")
     config = toml.load(os.path.normpath(config_fname))
 
-    pipeline_calibration_videos = config['pipeline']['calibration_videos']
+    pipeline_calibration_videos = config.get('pipeline', {}).get('calibration_videos', 'calibration')
     search_path = os.path.normpath(os.path.join(session_path, *folders))
     calib_folder = find_calibration_folder(config, search_path) 
     calib_fname = os.path.join(calib_folder, pipeline_calibration_videos, "calibration.toml")
