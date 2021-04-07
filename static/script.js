@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var canvas = document.getElementById('renderCanvas');
 
     // load the 3D engine
-    var engine = new BABYLON.Engine(canvas, true);
+    state.engine = new BABYLON.Engine(canvas, true);
 
     // createScene function that creates and return the scene
     var createScene = function() {
@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var keypoints = undefined;
 
         // Create the scene space
-        var scene = new BABYLON.Scene(engine);
+        var scene = new BABYLON.Scene(state.engine);
 
         var ambiance = 0.5;
         scene.ambientColor = new BABYLON.Color3(ambiance, ambiance, ambiance);
@@ -150,14 +150,14 @@ window.addEventListener('DOMContentLoaded', function(){
         false);
 
     // run the render loop
-    engine.runRenderLoop(function() {
+    state.engine.runRenderLoop(function() {
         scene.render();
-        divFps.innerHTML = engine.getFps().toFixed() + " fps"; 
+        divFps.innerHTML = state.engine.getFps().toFixed() + " fps"; 
     });
 
     // the canvas/window resize event handler
     window.addEventListener('resize', function() {
-        engine.resize();
+        state.engine.resize();
     });
 
     var progressBar = document.getElementById("progressBar");
@@ -345,12 +345,11 @@ function previousVideo() {
 
 function updateSession(session, state_url) {
 
-    state.scheme = undefined;
-    fetch('/scheme/' + session)
+    state.metadata = undefined;
+    fetch('/metadata/' + session)
         .then(response => response.json())
         .then(data => {
-            state.scheme = data;
-
+            state.metadata = data;
         });
 
     document.getElementById('actogram').innerHTML = '';
@@ -531,9 +530,11 @@ function updateTrial(trial) {
             state.containers[i].style.width = width +"px";
             state.containers[i].style.height = height + "px";
 
+            // state.engine.resize(); 
+
             if(i == 0) {
                 updateProgressBar();
-                state.videoLoaded = true;            
+                state.videoLoaded = true;          
                 if (state.behaviorLoaded) {
                     if (state.allBehaviorChanges[url_suffix]) {
                         applyBehaviorChanges();
@@ -552,10 +553,9 @@ function updateTrial(trial) {
     }, 10);
 
     setInterval(function () {
-        var video_speed = 0.2;
         var totalmseconds = Math.floor(state.videos[0].duration * 1000);
         var currentmseconds = Math.floor(state.videos[0].currentTime * 1000);
-        timer.innerHTML = formatTime(currentmseconds, video_speed) + ' / ' + formatTime(totalmseconds, video_speed);
+        timer.innerHTML = formatTime(currentmseconds) + ' / ' + formatTime(totalmseconds);
 
         var currFrame = updateFrameNumber();
         var nFrames = Math.floor(state.videos[0].duration * fps)
@@ -608,8 +608,8 @@ function download(data) {
     URL.revokeObjectURL(url);
 }
 
-function formatTime(milliseconds, video_speed) {
-    milliseconds = video_speed * milliseconds;
+function formatTime(milliseconds) {
+    milliseconds = state.metadata.video_speed * milliseconds;
     var mseconds = Math.floor(milliseconds % 1000)
     mseconds = mseconds.toString().substring(0, 2);
     mseconds = (mseconds >= 10) ? mseconds : '0' + mseconds;
@@ -620,9 +620,8 @@ function formatTime(milliseconds, video_speed) {
     return minutes + ':' + seconds + ':' + mseconds;
 }
 
-var video_speed = 0.2;
 var vid_fps = 60.0;
-var slowdown = 0.5;
+var slowdown = 1;
 var fps = 60.0;
 var rate_estimate = vid_fps/fps*slowdown;
 var framenum = 0;
@@ -1801,7 +1800,7 @@ function speedupVideo() {
 }
 
 function updateSpeedText() {
-    var full_slow = slowdown * video_speed;
+    var full_slow = slowdown * state.metadata.video_speed;
     var text = "";
     if(Math.abs(full_slow - 1.0) < 1e-3) {
         text = "actual speed";
@@ -1825,7 +1824,7 @@ function updateKeypoints(kps) {
         var kp = kps[i];
         if (!state.spheres) {
             drawSpheres(state.scene, kps, scale);
-            drawTubes(state.scene, state.scheme, kps, scale);
+            drawTubes(state.scene, state.metadata.scheme, kps, scale);
         } else {
             state.spheres[i].position.x = kp[0]*scale;
             state.spheres[i].position.y = kp[1]*scale;
@@ -1834,8 +1833,8 @@ function updateKeypoints(kps) {
     }
 
     var tubecount = 0;
-    for(var i=0; i<state.scheme.length; i++) {
-        var links = state.scheme[i];
+    for(var i=0; i<state.metadata.scheme.length; i++) {
+        var links = state.metadata.scheme[i];
         var prev = null;
         for(var j=1; j<links.length; j++) {
             var prev = kps[links[j-1]];
@@ -1961,8 +1960,8 @@ function draw2D(framenum) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         var cname = state.camnames[vidnum];
         var kps = state.data2d[cname][framenum];
-        for(var i=0; i<state.scheme.length; i++) {
-            var links = state.scheme[i];
+        for(var i=0; i<state.metadata.scheme.length; i++) {
+            var links = state.metadata.scheme[i];
             var col = colors[i];
             var path = [];
             for(var j=0; j<links.length; j++) {

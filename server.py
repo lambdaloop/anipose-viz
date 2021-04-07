@@ -314,11 +314,12 @@ def get_2d_proj(session, folders, filename):
     projs = load_2d_projections(path, folders, fname)
     return jsonify(projs)
 
-@app.route('/scheme/<session>')
-def get_scheme(session):
+@app.route('/metadata/<session>')
+def get_metadata(session):
 
     config_fname = os.path.join(prefix, session, 'config.toml')
     config = toml.load(config_fname)
+    video_speed = config.get('videos', {}).get('video_speed', 1)
     scheme = np.array(config['labeling']['scheme'], dtype = object)
 
     kps = {}
@@ -330,15 +331,17 @@ def get_scheme(session):
                 ix = ix + 1
 
     ix = 0
-    scheme_new = []
+    new_scheme = []
     for i in range(len(scheme)):
         kps_ix = np.zeros(len(scheme[i]), dtype = int)
         for j in range(len(scheme[i])):
             keypoint = scheme[i][j]
             kps_ix[j] = kps[keypoint]
-        scheme_new.append(kps_ix.tolist())
+        new_scheme.append(kps_ix.tolist())
 
-    return jsonify(scheme_new)
+    metadata = {'video_speed': video_speed, 'scheme': new_scheme};
+
+    return jsonify(metadata)
 
 @app.route('/behavior/<session>/<folders>/<filename>')
 def get_behaviors(session, folders, filename):
