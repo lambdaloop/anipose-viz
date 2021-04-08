@@ -512,12 +512,10 @@ function updateTrial(trial) {
 
     url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
     state.fps = undefined;
-    state.vid_fps = undefined;
     fetch(url)
         .then(response => response.json())
         .then(data => {
             state.fps = data;
-            state.vid_fps = data;
         });
 
     for(var i=0; i<state.canvases.length; i++) {
@@ -631,9 +629,8 @@ function formatTime(milliseconds) {
     return minutes + ':' + seconds + ':' + mseconds;
 }
 
-// var vid_fps = state.fps;
 var slowdown = 1;
-var rate_estimate = state.vid_fps/state.fps*slowdown;
+// var rate_estimate = state.vid_fps/state.fps*slowdown;
 var framenum = 0;
 var playing = false;
 var display2d = true;
@@ -642,7 +639,7 @@ var prev_num = 0;
 function drawFrame(force) {
     if(!playing && !force) return;
 
-    var ft = state.videos[0].currentTime * state.vid_fps;
+    var ft = state.videos[0].currentTime * state.fps;
     // var diff = ft - framenum;
     // if(ft > 5) {
     //     rate_estimate = 0.9 * rate_estimate + 0.1 * diff;
@@ -1641,8 +1638,8 @@ function play() {
     playing = true;
     var t = state.videos[0].currentTime;
     var nFrames = state.videos[0].duration * state.fps;
-    framenum = state.videos[0].currentTime * state.vid_fps;
-    rate_estimate = state.vid_fps/state.fps*slowdown;
+    framenum = state.videos[0].currentTime * state.fps;
+    // rate_estimate = state.vid_fps/state.fps*slowdown;
     for(var i=0; i<state.videos.length; i++) {        
         state.videos[i].currentTime = t;
         state.videos[i].playbackRate = slowdown;
@@ -1662,7 +1659,7 @@ function pause() {
         state.videos[i].pause();
     }
     t = state.videos[0].currentTime;
-    var framenum = Math.round(t * state.vid_fps);
+    var framenum = Math.round(t * state.fps);
     playing = false;
     updateKeypoints(state.data[framenum])
     draw2D(framenum);
