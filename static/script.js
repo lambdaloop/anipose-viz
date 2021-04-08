@@ -93,6 +93,7 @@ window.addEventListener('DOMContentLoaded', function(){
             scene
         );
         camera.setPosition(new BABYLON.Vector3(0, 0, -10));
+        camera.fovMode = 0;
 
         // // Parameters: name, position, scene
         // // var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 0, 0), scene);
@@ -540,7 +541,7 @@ function updateTrial(trial) {
             state.containers[i].style.width = width +"px";
             state.containers[i].style.height = height + "px";
 
-            // state.engine.resize(); 
+            state.engine.resize(); 
 
             if(i == 0) {
                 updateProgressBar();
@@ -1808,6 +1809,11 @@ function speedupVideo() {
 }
 
 function updateSpeedText() {
+
+    if (!state.metadata) {
+        return;
+    }
+
     var full_slow = slowdown * state.metadata.video_speed;
     var text = "";
     if(Math.abs(full_slow - 1.0) < 1e-3) {
