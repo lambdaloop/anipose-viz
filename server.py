@@ -12,6 +12,7 @@ from glob import glob
 import os
 from collections import deque, defaultdict
 import re
+import cv2
 import string
 import random
 from datetime import datetime
@@ -477,6 +478,13 @@ def get_video(session, folders, filename):
     path = safe_join(path, 'videos-raw-slow')
     print(path, filename + '.mp4')
     return send_from_directory(path, filename + '.mp4')
+
+@app.route('/framerate/<session>/<folders>/<filename>')
+def get_framerate(session, folders, filename):
+    path = safe_join(prefix, session, folders,'videos-raw-slow', filename + '.mp4')
+    cap = cv2.VideoCapture(path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    return jsonify(fps)
 
 def group_by_trial(fnames, session):
     cam_regex = get_cam_regex(session)

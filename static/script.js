@@ -509,6 +509,16 @@ function updateTrial(trial) {
         console.log(url);
     }
 
+    url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
+    state.fps = undefined;
+    state.vid_fps = undefined;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            state.fps = data;
+            state.vid_fps = data;
+        });
+
     for(var i=0; i<state.canvases.length; i++) {
 
         var vid = state.videos[i];
@@ -558,7 +568,7 @@ function updateTrial(trial) {
         timer.innerHTML = formatTime(currentmseconds) + ' / ' + formatTime(totalmseconds);
 
         var currFrame = updateFrameNumber();
-        var nFrames = Math.floor(state.videos[0].duration * fps)
+        var nFrames = Math.floor(state.videos[0].duration * state.fps)
         frameCount.innerHTML = currFrame + ' / ' + nFrames;
 
     }, 5);
@@ -620,10 +630,9 @@ function formatTime(milliseconds) {
     return minutes + ':' + seconds + ':' + mseconds;
 }
 
-var vid_fps = 60.0;
+// var vid_fps = state.fps;
 var slowdown = 1;
-var fps = 60.0;
-var rate_estimate = vid_fps/fps*slowdown;
+var rate_estimate = state.vid_fps/state.fps*slowdown;
 var framenum = 0;
 var playing = false;
 var display2d = true;
@@ -631,7 +640,8 @@ var prev_num = 0;
 
 function drawFrame(force) {
     if(!playing && !force) return;
-    var ft = state.videos[0].currentTime * vid_fps;
+
+    var ft = state.videos[0].currentTime * state.vid_fps;
     // var diff = ft - framenum;
     // if(ft > 5) {
     //     rate_estimate = 0.9 * rate_estimate + 0.1 * diff;
@@ -649,7 +659,7 @@ function drawFrame(force) {
     // }
 
     framenum = Math.round(ft+1);
-    var nFrames = state.videos[0].duration * fps
+    var nFrames = state.videos[0].duration * state.fps
     if (state.selectedBout) {
         if (framenum > state.bouts[state.selectedBehavior][state.selectedBout].end) {
             for (var i = 0; i < state.videos.length; i++) {
@@ -663,7 +673,7 @@ function drawFrame(force) {
         updateKeypoints(state.data[fix])
         draw2D(fix);
     }, 0);
-    setTimeout(drawFrame, 1000.0/fps);
+    setTimeout(drawFrame, 1000.0/state.fps);
     // window.requestAnimationFrame(drawFrame);
 }
 
@@ -672,7 +682,7 @@ function drawNextFrame(force, framenum) {
     if(!playing && !force) {
         return;
     }
-    var nFrames = state.videos[0].duration * fps
+    var nFrames = state.videos[0].duration * state.fps
     for (var i = 0; i < state.videos.length; i++) {
         state.videos[i].currentTime = (framenum / nFrames) * state.videos[0].duration;
     }
@@ -682,7 +692,7 @@ function drawNextFrame(force, framenum) {
         updateKeypoints(state.data[fix])
         draw2D(fix);
     }, 0);
-    setTimeout(drawFrame, 1000.0/fps);
+    setTimeout(drawFrame, 1000.0/state.fps);
 }
 
 function getUniqueTrialBehaviors() {
@@ -845,7 +855,7 @@ function drawActogram() {
 
     console.log(state.behaviorOrder);
 
-    var nFrames = state.videos[0].duration * fps;
+    var nFrames = state.videos[0].duration * state.fps;
     document.querySelectorAll('.behaviorCanvas').forEach(canvas => {
         var behaviorId = canvas.id;
         var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
@@ -987,7 +997,7 @@ function changeBehaviorName(container) {
 
 function editBout(e, behaviorId) {
 
-    var nFrames = state.videos[0].duration * fps;
+    var nFrames = state.videos[0].duration * state.fps;
     Object.keys(state.bouts[behaviorId]).forEach(function(key) {
         var bout = state.bouts[behaviorId][key];
         var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
@@ -1063,7 +1073,7 @@ function expandContractBout(e, behaviorId) {
 
     Object.keys(state.bouts[behaviorId]).forEach(function(id) {
         var bout = state.bouts[behaviorId][id];
-        var nFrames = state.videos[0].duration * fps;
+        var nFrames = state.videos[0].duration * state.fps;
         var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior];
         var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
 
@@ -1186,7 +1196,7 @@ function translateBout(e, behaviorId) {
 
     Object.keys(state.bouts[behaviorId]).forEach(function(id) {
         var bout = state.bouts[behaviorId][id];
-        var nFrames = state.videos[0].duration * fps;
+        var nFrames = state.videos[0].duration * state.fps;
         var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior];
         var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
 
@@ -1330,7 +1340,7 @@ function addBout(e, behaviorId) {
         return;
     }
 
-    var nFrames = state.videos[0].duration * fps;
+    var nFrames = state.videos[0].duration * state.fps;
     var rect = state.behaviorCanvases[behaviorId].getBoundingClientRect();
     var point = {x: e.clientX - rect.left, y: e.clientY - rect.top};
     var length = Math.floor(nFrames / 30);
@@ -1430,7 +1440,7 @@ function whenMouseUp() {
 function selectBout(ctx) {
 
     var bout = state.bouts[state.selectedBehavior][state.selectedBout];
-    var nFrames = state.videos[0].duration * fps;
+    var nFrames = state.videos[0].duration * state.fps;
     var behaviorCanvas = state.behaviorCanvases[state.selectedBehavior]
 
     var timeToSet = (bout.start/nFrames)*state.videos[0].duration;
@@ -1458,7 +1468,7 @@ function isSelected(point, bout) {
 function updateBehaviorState(behaviorId, color, rect) {
 
     if (state.selectedBout) {
-        var nFrames = state.videos[0].duration * fps;
+        var nFrames = state.videos[0].duration * state.fps;
         var id = state.selectedBout;
         state.behaviors[id].manual = true;
         console.log(state.selectedBout);
@@ -1539,7 +1549,7 @@ function drawBehavior(behaviorId, ctx) {
 function createBehavior(behaviorId, color) {
 
     var behavior = state.behaviorIds[behaviorId];
-    var nFrames = state.videos[0].duration * fps;
+    var nFrames = state.videos[0].duration * state.fps;
     var ctx = state.behaviorCanvases[behaviorId].getContext("2d");
     state.behaviorCanvases[behaviorId], ctx = updateCanvas(state.behaviorCanvases[behaviorId], ctx);
     state.behaviorCanvases[behaviorId].style.border ='1px solid ' + color;
@@ -1600,10 +1610,8 @@ function updateProgressBar() {
 
 function updateFrameNumber() {
     var video = state.videos[0];
-    var frameRate = vid_fps/fps*slowdown;
-    var frameRate = fps;
     var currTime = video.currentTime;
-    var currFrame = Math.floor(currTime*frameRate);
+    var currFrame = Math.floor(currTime*state.fps);
     return currFrame
 }
 
@@ -1631,9 +1639,9 @@ function findPos(obj) {
 function play() {
     playing = true;
     var t = state.videos[0].currentTime;
-    var nFrames = state.videos[0].duration * fps;
-    framenum = state.videos[0].currentTime * vid_fps;
-    rate_estimate = vid_fps/fps*slowdown;
+    var nFrames = state.videos[0].duration * state.fps;
+    framenum = state.videos[0].currentTime * state.vid_fps;
+    rate_estimate = state.vid_fps/state.fps*slowdown;
     for(var i=0; i<state.videos.length; i++) {        
         state.videos[i].currentTime = t;
         state.videos[i].playbackRate = slowdown;
@@ -1653,7 +1661,7 @@ function pause() {
         state.videos[i].pause();
     }
     t = state.videos[0].currentTime;
-    var framenum = Math.round(t * vid_fps);
+    var framenum = Math.round(t * state.vid_fps);
     playing = false;
     updateKeypoints(state.data[framenum])
     draw2D(framenum);
