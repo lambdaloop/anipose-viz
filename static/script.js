@@ -365,6 +365,7 @@ function updateSession(session, state_url) {
             state.session = data.session;
             state.trials = [];
 
+            vidlist.innerHTML = '';
             var ncams = data.folders[0].files[0].camnames.length; 
             for (var i = 0; i < ncams; i++) {
 
@@ -510,7 +511,7 @@ function updateTrial(trial) {
         console.log(url);
     }
 
-    url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
+    var url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
     state.fps = undefined;
     fetch(url)
         .then(response => response.json())
@@ -562,6 +563,11 @@ function updateTrial(trial) {
     }, 10);
 
     setInterval(function () {
+
+        if (!state.metadata) {
+            return
+        };
+
         var totalmseconds = Math.floor(state.videos[0].duration * 1000);
         var currentmseconds = Math.floor(state.videos[0].currentTime * 1000);
         timer.innerHTML = formatTime(currentmseconds) + ' / ' + formatTime(totalmseconds);
@@ -1826,7 +1832,7 @@ function updateSpeedText() {
 
 function updateKeypoints(kps) {
 
-    if (!kps) {
+    if (!kps || !state.metadata) {
         return;
     }
 
