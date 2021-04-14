@@ -16,6 +16,7 @@ import cv2
 import string
 import random
 from datetime import datetime
+import time
 
 import pandas as pd
 import numpy as np
@@ -49,9 +50,9 @@ Compress(app)
 # squeeze = Squeeze()
 # squeeze.init_app(app)
 
-ip_ban = IpBan(ban_seconds=3600, ban_count=5, persist=True, ipc=True)
-ip_ban.init_app(app)
-ip_ban.load_nuisances()
+# ip_ban = IpBan(ban_seconds=3600, ban_count=5, persist=True, ipc=True)
+# ip_ban.init_app(app)
+# ip_ban.load_nuisances()
 
 def true_basename(fname):
     basename = os.path.basename(fname)
@@ -272,7 +273,8 @@ def get_sessions():
             if os.path.exists(os.path.join(prefix, folder, 'config.toml')):
                 sessions.append(folder)
 
-        sessions = sorted(sessions)
+        sessions = list(reversed(sorted(sessions, key=lambda x: time.strptime(x, '%m.%d.%y'))))
+        # sessions = list(reversed(sorted(sessions, key=natural_keys)))
 
     return jsonify({
         'sessions': sessions
@@ -320,7 +322,7 @@ def get_metadata(session):
 
     config_fname = os.path.join(prefix, session, 'config.toml')
     config = toml.load(config_fname)
-    video_speed = config.get('videos', {}).get('video_speed', 1)
+    video_speed = config.get('videos', {}).get('video_speed', 0.2)
     scheme = np.array(config['labeling']['scheme'], dtype = object)
 
     kps = {}
@@ -356,34 +358,34 @@ def get_behaviors(session, folders, filename):
         behavior_dict = json.load(json_file)
 
     behaviors = behavior_dict.get(folders, {}).get(filename, {})
-    # behaviors = add_laser(behaviors, folders, filename)
+    behaviors = add_laser(behaviors, folders, filename)
 
     return jsonify(behaviors)
 
-# def add_laser(behaviors, folders, filename):
+def add_laser(behaviors, folders, filename):
 
-#     if 'sec' not in filename:
-#         return behaviors
+    if 'sec' not in filename:
+        return behaviors
 
-#     pat = re.compile(r'(\d+)_fly(\d+_\d+) R(\d+)C(\d+)\s+([a-z]+)-([a-z]+)-([0-9.]+) sec')
-#     names = ['date', 'fly', 'rep', 'condnum', 'type', 'dir', 'stimlen']
-#     groups = pat.match(filename).groups()
-#     d = dict(zip(names, groups))
-#     stimlen = float(d['stimlen'])
+    pat = re.compile(r'(\d+)_fly(\d+_\d+) R(\d+)C(\d+)\s+([a-z]+)-([a-z]+)-([0-9.]+) sec')
+    names = ['date', 'fly', 'rep', 'condnum', 'type', 'dir', 'stimlen']
+    groups = pat.match(filename).groups()
+    d = dict(zip(names, groups))
+    stimlen = float(d['stimlen'])
 
-#     if stimlen > 0:
-#         start_frame = 150
-#         end_frame = int(np.floor(start_frame + 300*stimlen))
-#         laser_id = generate_token(22)
-#         behaviors[laser_id] = {'filename': filename, 
-#                                'folders': folders,
-#                                'start': start_frame,
-#                                'end': end_frame, 
-#                                'bout_id': laser_id,
-#                                'behavior': 'laser',
-#                                'manual': True}
+    if stimlen > 0:
+        start_frame = 150
+        end_frame = int(np.floor(start_frame + 300*stimlen))
+        laser_id = generate_token(22)
+        behaviors[laser_id] = {'filename': filename,
+                               'folders': folders,
+                               'start': start_frame,
+                               'end': end_frame,
+                               'bout_id': laser_id,
+                               'behavior': 'laser',
+                               'manual': True}
 
-#     return behaviors
+    return behaviors
 
 def merge_behavior_changes(behavior_changes):
 

@@ -699,29 +699,33 @@ function drawNextFrame(force, framenum) {
     setTimeout(drawFrame, 1000.0/state.fps);
 }
 
-function getUniqueTrialBehaviors() {
-    var uniqueTrialBehaviors = new Set();
-    Object.keys(state.behaviors).forEach(function(id) {
-        uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
-    });
-    var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
-    return uniqueTrialBehaviors
-}
-
 // function getUniqueTrialBehaviors() {
 //     var uniqueTrialBehaviors = new Set();
-//     var laser_id = undefined; 
 //     Object.keys(state.behaviors).forEach(function(id) {
-//         if (state.behaviors[id]['behavior'] == 'laser') {
-//             laser_id = id;
-//         } else {
-//             uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
-//         }
+//         uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
 //     });
 //     var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
-
 //     return uniqueTrialBehaviors
 // }
+
+function getUniqueTrialBehaviors() {
+    var uniqueTrialBehaviors = new Set();
+    var laser_id = undefined;
+    Object.keys(state.behaviors).forEach(function(id) {
+        if (state.behaviors[id]['behavior'] == 'laser') {
+            laser_id = id;
+        } else {
+            uniqueTrialBehaviors.add(state.behaviors[id]['behavior']);
+        }
+    });
+    var uniqueTrialBehaviors = Array.from(uniqueTrialBehaviors);
+
+    if (laser_id) {
+        uniqueTrialBehaviors.unshift('laser')
+    }
+
+    return uniqueTrialBehaviors
+}
 
 function undo() {
     if (state.behaviorChanges.length === 0) {
