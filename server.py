@@ -396,32 +396,30 @@ def merge_behavior_changes(behavior_changes):
 
         changes = session_changes[session]
         path = safe_join(prefix, session, 'behaviors.json')
-        if not os.path.exists(path):
-            return [], {}
+        if os.path.exists(path):
+            with open(path, 'r') as json_file:
+                behavior_dict = json.load(json_file)
+        else:
+            behavior_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
 
-        with open(path, 'r+') as json_file:
-            behavior_dict = json.load(json_file)
+        for change in changes:
+            if change['modification'] == 'added':
+                bout = change['new']
+                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
 
-            for change in changes:
+            elif change['modification'] == 'removed':
+                bout = change['old']
+                behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
 
-                if change['modification'] == 'added':
-                    bout = change['new']
-                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
+            else: # properties of an existing bout were edited (resized, translated, behavior name changed)
+                bout = change['old']
+                edits = change['new']
+                for key in list(edits.keys()):
+                    bout[key] = edits[key]
+                behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
 
-                elif change['modification'] == 'removed': 
-                    bout = change['old']
-                    behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
-
-                else: # properties of an existing bout were edited (resized, translated, behavior name changed)
-                    bout = change['old']
-                    edits = change['new']
-                    for key in list(edits.keys()):
-                        bout[key] = edits[key]
-                    behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
-
-            json_file.seek(0)
+        with open(path, 'w') as json_file:
             json.dump(behavior_dict, json_file, indent = 4)
-            json_file.truncate()
 
     message = 'behavior labels successfully updated' 
     return message
@@ -481,9 +479,11 @@ def get_video(session, folders, filename):
 
 @app.route('/framerate/<session>/<folders>/<filename>')
 def get_framerate(session, folders, filename):
-    path = safe_join(prefix, session, folders,'videos-raw-slow', filename + '.mp4')
+    path = safe_join(prefix, session, folders.replace('|', '/'),'videos-raw-slow', filename + '.mp4')
     cap = cv2.VideoCapture(path)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
+    print(path, fps)
     return jsonify(fps)
 
 def group_by_trial(fnames, session):
