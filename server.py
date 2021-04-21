@@ -407,17 +407,28 @@ def merge_behavior_changes(behavior_changes):
         for change in changes:
             if change['modification'] == 'added':
                 bout = change['new']
+                if bout['folders'] not in behavior_dict:
+                    behavior_dict[bout['folders']] = dict()
+                if bout['filename'] not in behavior_dict[bout['folders']]:
+                    behavior_dict[bout['folders']][bout['filename']] = dict()
                 behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
 
             elif change['modification'] == 'removed':
                 bout = change['old']
-                behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
+                try:
+                    behavior_dict[bout['folders']][bout['filename']].pop(bout['bout_id'])
+                except KeyError:
+                    pass # was never there?
 
             else: # properties of an existing bout were edited (resized, translated, behavior name changed)
                 bout = change['old']
                 edits = change['new']
                 for key in list(edits.keys()):
                     bout[key] = edits[key]
+                if bout['folders'] not in behavior_dict:
+                    behavior_dict[bout['folders']] = dict()
+                if bout['filename'] not in behavior_dict[bout['folders']]:
+                    behavior_dict[bout['folders']][bout['filename']] = dict()
                 behavior_dict[bout['folders']][bout['filename']][bout['bout_id']] = bout
 
         with open(path, 'w') as json_file:

@@ -171,6 +171,10 @@ window.addEventListener('DOMContentLoaded', function(){
             speedupVideo();
         } else if (e.keyCode==189) {
             slowdownVideo();
+        } else if (e.keyCode==190) { // .
+            advanceFrame(1);
+        } else if (e.keyCode==188) { // ,
+            advanceFrame(-1);
         }
     });
 
@@ -689,7 +693,9 @@ function drawFrame(force) {
         updateKeypoints(state.data[fix])
         draw2D(fix);
     }, 0);
-    setTimeout(drawFrame, 1000.0/state.fps);
+    if(playing) {
+        setTimeout(drawFrame, 1000.0/state.fps);
+    }
     // window.requestAnimationFrame(drawFrame);
 }
 
@@ -708,7 +714,6 @@ function drawNextFrame(force, framenum) {
         updateKeypoints(state.data[fix])
         draw2D(fix);
     }, 0);
-    setTimeout(drawFrame, 1000.0/state.fps);
 }
 
 // function getUniqueTrialBehaviors() {
@@ -1830,6 +1835,11 @@ function speedupVideo() {
     slowdown = slowdown * Math.sqrt(2);
     if(playing) { play(); }
     updateSpeedText();
+}
+
+function advanceFrame(num) {
+    framenum += num;
+    drawNextFrame(true, framenum);
 }
 
 function updateSpeedText() {
