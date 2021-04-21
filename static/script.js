@@ -476,6 +476,8 @@ function updateTrial(trial) {
     updatePlayPauseButton();
     updateToggle2DButton();
 
+
+
     var url;
     url = '/pose3d/' + url_suffix;
     fetch(url)
@@ -511,13 +513,6 @@ function updateTrial(trial) {
         console.log(url);
     }
 
-    var url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
-    state.fps = undefined;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            state.fps = data;
-        });
 
     for(var i=0; i<state.canvases.length; i++) {
 
@@ -544,6 +539,7 @@ function updateTrial(trial) {
 
             if(i == 0) {
                 updateProgressBar();
+                console.log('video loaded');
                 state.videoLoaded = true;          
                 if (state.behaviorLoaded) {
                     if (state.allBehaviorChanges[url_suffix]) {
@@ -555,6 +551,18 @@ function updateTrial(trial) {
             }
         }, false);
     }
+
+    var url = '/framerate/' + trial.session + "/" + trial.folder + "/" + trial.files[0];
+    state.fps = undefined;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            state.fps = data;
+            if(state.videoLoaded && state.behaviorLoaded) {
+                console.log('drawing actogram again')
+                drawActogram();
+            }
+        });
 
     // state.videos[0].addEventListener('timeupdate', updateProgressBar, false);
     setInterval(function () {
@@ -589,6 +597,7 @@ function updateTrial(trial) {
             state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
             state.behaviorLoaded = true;
             if (state.videoLoaded) {
+                console.log('drawing actogram')
                 if (state.allBehaviorChanges[url_suffix]) {
                     applyBehaviorChanges();
                     state.uniqueTrialBehaviors = getUniqueTrialBehaviors();
@@ -596,6 +605,9 @@ function updateTrial(trial) {
                 drawActogram();
             }
         });
+
+
+
 }
 
 function downloadBehaviors() {
@@ -1609,11 +1621,16 @@ function generateId(length) {
 function updateProgressBar() {
     var video = state.videos[0];
     var progressBar = document.getElementById('progressBar');
-    // var percentage = Math.floor((100 / video.duration) * video.currentTime);
-    var value = (100 / video.duration) * video.currentTime;
-    var percentage = Math.round((value + Number.EPSILON) * 1000) / 1000;
-    progressBar.value = percentage;
-    progressBar.innerHTML = percentage + '% played';
+    if(video && video.duration && video.currentTime) {
+        // var percentage = Math.floor((100 / video.duration) * video.currentTime);
+        var value = (100 / video.duration) * video.currentTime;
+        var percentage = Math.round((value + Number.EPSILON) * 1000) / 1000;
+        progressBar.value = percentage;
+        progressBar.innerHTML = percentage + '% played';
+    } else {
+        progressBar.value = 0;
+        progressBar.innerHTML = "";
+    }
 }
 
 function updateFrameNumber() {
