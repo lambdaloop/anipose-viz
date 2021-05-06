@@ -507,7 +507,7 @@ def group_by_trial(fnames, session):
     out = []
     for name in names:
         fnames = [true_basename(x) for x in cam_videos[name]]
-        cnames = [get_cam_name(cam_regex, f) for f in fnames]
+        cnames = [get_cam_name(cam_regex, f) for f in cam_videos[name]]
         out.append({
             'vidname': name,
             'camnames': cnames,
