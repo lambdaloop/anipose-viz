@@ -194,7 +194,8 @@ def load_2d_projections(session_path, folders, fname):
             M[i, j] = np.mean(data['M_{}{}'.format(i, j)])
 
     cols = [x for x in data.columns if '_error' in x]
-    bodyparts = [c.replace('_error', '') for c in cols]
+    # bodyparts = sorted([c.replace('_error', '') for c in cols])
+    bodyparts = get_bodyparts_scheme(config['labeling']['scheme'])
 
     vecs = []
     for bp in bodyparts:
@@ -287,7 +288,9 @@ def get_3d(session, folders, filename):
     data = pd.read_csv(path)
 
     cols = [x for x in data.columns if '_error' in x]
-    bodyparts = [c.replace('_error', '') for c in cols]
+    # bodyparts = sorted([c.replace('_error', '') for c in cols])
+    config = get_config(session)
+    bodyparts = get_bodyparts_scheme(config['labeling']['scheme'])
 
     vecs = []
     for bp in bodyparts:
@@ -315,29 +318,44 @@ def get_2d_proj(session, folders, filename):
     projs = load_2d_projections(path, folders, fname)
     return jsonify(projs)
 
-@app.route('/metadata/<session>')
-def get_metadata(session):
+def get_bodyparts_scheme(scheme):
+    bodyparts = []
+    for bp_list in scheme:
+        for bp in bp_list:
+            if bp not in bodyparts:
+                bodyparts.append(bp)
+    return bodyparts
 
+def get_config(session):
     config_fname = os.path.join(prefix, session, 'config.toml')
     config = toml.load(config_fname)
-    video_speed = config.get('videos', {}).get('video_speed', 1)
-    scheme = np.array(config['labeling']['scheme'], dtype = object)
+    return config
 
-    kps = {}
-    ix = 0
-    for i in range(len(scheme)):
-        for j in range(len(scheme[i])):
-            if scheme[i][j] not in kps:
-                kps[scheme[i][j]] = ix
-                ix = ix + 1
+@app.route('/metadata/<session>')
+def get_metadata(session):
+    config = get_config(session)
+    video_speed = config.get('videos', {}).get('video_speed', 1)
+    scheme = config['labeling']['scheme']
+
+    bodyparts = get_bodyparts_scheme(scheme)
+    # kps = {}
+    # bodyparts = []
+    # ix = 0
+    # for i in range(len(scheme)):
+    #     for j in range(len(scheme[i])):
+    #         bp = scheme[i][j]
+    #         if bp not in kps:
+    #             kps[bp] = ix
+    #             bodyparts.append(bp)
+    #             ix = ix + 1
+    kps = dict(zip(bodyparts, range(len(bodyparts))))
 
     ix = 0
     new_scheme = []
-    for i in range(len(scheme)):
-        kps_ix = np.zeros(len(scheme[i]), dtype = int)
-        for j in range(len(scheme[i])):
-            keypoint = scheme[i][j]
-            kps_ix[j] = kps[keypoint]
+    for bp_list in scheme:
+        kps_ix = np.zeros(len(bp_list), dtype = int)
+        for j, bp in enumerate(bp_list):
+            kps_ix[j] = kps[bp]
         new_scheme.append(kps_ix.tolist())
 
     metadata = {'video_speed': video_speed, 'scheme': new_scheme};
